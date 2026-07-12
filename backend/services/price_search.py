@@ -48,8 +48,10 @@ def search_prices(product: str, country: str) -> list[dict]:
             cached = redis.get(cache_key)
             if cached:
                 if isinstance(cached, str):
-                    return json.loads(cached)
-                return cached
+                    raw = json.loads(cached)
+                else:
+                    raw = cached
+                return [r for r in raw if _is_relevant(r.get("title", ""), keywords) and r.get("price", 0) >= 100]
         except Exception:
             pass
 
@@ -90,13 +92,15 @@ def search_prices(product: str, country: str) -> list[dict]:
             "thumbnail": item.get("thumbnail"),
         })
 
+    filtered = [r for r in results if r.get("price", 0) >= 100]
+
     if redis:
         try:
-            redis.setex(cache_key, 3600, json.dumps(results))
+            redis.setex(cache_key, 3600, json.dumps(filtered))
         except Exception:
             pass
 
-    return results
+    return filtered
 
 
 def store_prices(supabase, results: list[dict]):
