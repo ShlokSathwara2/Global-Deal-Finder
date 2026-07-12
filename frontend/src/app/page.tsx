@@ -43,6 +43,8 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const splineRef = useRef<any>(null)
+  const heroRef = useRef<HTMLDivElement>(null)
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < 2) {
@@ -76,6 +78,37 @@ export default function Home() {
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSplineLoad = useCallback((spline: any) => {
+    splineRef.current = spline
+  }, [])
+
+  const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const spline = splineRef.current
+    if (!spline || !heroRef.current) return
+
+    const rect = heroRef.current.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2
+
+    try {
+      const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
+      if (head) {
+        head.rotation.y = x * 25
+        head.rotation.x = -y * 15
+      }
+      const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye')
+      const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye')
+      if (eyeL) {
+        eyeL.rotation.y = x * 35
+        eyeL.rotation.x = -y * 20
+      }
+      if (eyeR) {
+        eyeR.rotation.y = x * 35
+        eyeR.rotation.x = -y * 20
+      }
+    } catch {}
   }, [])
 
   const doSearch = async (searchQuery: string) => {
@@ -186,8 +219,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Hero with 3D Spline background */}
-      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black/[0.96]">
+      {/* Hero with 3D Spline background + mouse tracking */}
+      <div
+        ref={heroRef}
+        onMouseMove={handleHeroMouseMove}
+        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black/[0.96]"
+      >
         <Spotlight
           className="-top-40 left-0 md:left-60 md:-top-20"
           fill="white"
@@ -196,6 +233,7 @@ export default function Home() {
           <SplineScene
             scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
             className="w-full h-full"
+            onSplineLoad={handleSplineLoad}
           />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
@@ -214,99 +252,111 @@ export default function Home() {
             </p>
           </motion.div>
         </div>
+        {/* Bottom gradient fade into search area */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-ink-navy to-transparent z-10" />
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8 md:py-16">
+      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-20 pb-8 md:pb-16">
 
+        {/* Redesigned Search Bar */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-ink-navy/80 border border-brass/20 rounded-2xl p-4 md:p-6 mb-8"
+          transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
+          className="relative group"
         >
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1 relative" ref={dropdownRef}>
-              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/40 z-10" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value)
-                  setShowSuggestions(true)
-                  setActiveSuggestion(-1)
-                }}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                onKeyDown={handleKeyDown}
-                placeholder="What do you want to buy? e.g. Samsung Galaxy S25 Ultra"
-                className="w-full bg-ink-navy border border-brass/20 rounded-lg pl-10 pr-4 py-3 text-paper placeholder:text-paper/40 focus:outline-none focus:border-brass/50"
-              />
+          {/* Animated glow border */}
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-brass/40 via-teal/30 to-brass/40 opacity-60 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
+          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-brass/40 via-teal/30 to-brass/40 opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
 
-              <AnimatePresence>
-                {showSuggestions && (suggestions.length > 0 || suggestLoading) && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="absolute top-full left-0 right-0 mt-1 bg-ink-navy border border-brass/30 rounded-lg shadow-2xl overflow-hidden z-50"
-                  >
-                    {suggestLoading && (
-                      <div className="flex items-center gap-2 px-4 py-3 text-sm text-paper/50">
-                        <Loader2 size={14} className="animate-spin" />
-                        Finding suggestions...
-                      </div>
-                    )}
-                    {suggestions.map((s, i) => (
-                      <button
-                        key={i}
-                        onClick={() => {
-                          setQuery(s.text)
-                          setShowSuggestions(false)
-                          doSearch(s.text)
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition ${
-                          i === activeSuggestion
-                            ? 'bg-teal/20 text-teal'
-                            : 'hover:bg-brass/10 text-paper/80'
-                        }`}
-                      >
-                        <Search size={14} className="text-paper/30 shrink-0" />
-                        <span className="flex-1">{s.text}</span>
-                        <ChevronRight size={14} className="text-paper/20" />
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+          <div className="relative bg-ink-navy/90 backdrop-blur-xl rounded-2xl p-5 md:p-6 border border-white/5">
+            <div className="flex flex-col md:flex-row gap-3">
+              <div className="flex-1 relative" ref={dropdownRef}>
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brass/60 z-10" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value)
+                    setShowSuggestions(true)
+                    setActiveSuggestion(-1)
+                  }}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="What do you want to buy? e.g. Samsung Galaxy S25 Ultra"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-paper placeholder:text-paper/30 focus:outline-none focus:border-brass/50 focus:bg-white/8 transition-all duration-300"
+                />
 
-            <div className="relative">
-              <MapPin size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-paper/40" />
-              <select
-                value={homeCountry}
-                onChange={(e) => setHomeCountry(e.target.value)}
-                className="bg-ink-navy border border-brass/20 rounded-lg pl-10 pr-8 py-3 text-paper appearance-none focus:outline-none focus:border-brass/50"
+                <AnimatePresence>
+                  {showSuggestions && (suggestions.length > 0 || suggestLoading) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-ink-navy/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                    >
+                      {suggestLoading && (
+                        <div className="flex items-center gap-2 px-4 py-3 text-sm text-paper/50">
+                          <Loader2 size={14} className="animate-spin text-brass" />
+                          Finding suggestions...
+                        </div>
+                      )}
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setQuery(s.text)
+                            setShowSuggestions(false)
+                            doSearch(s.text)
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-all duration-200 ${
+                            i === activeSuggestion
+                              ? 'bg-teal/15 text-teal'
+                              : 'hover:bg-white/5 text-paper/80'
+                          }`}
+                        >
+                          <Search size={14} className="text-brass/40 shrink-0" />
+                          <span className="flex-1">{s.text}</span>
+                          <ChevronRight size={14} className="text-paper/20" />
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="relative">
+                <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brass/60 pointer-events-none" />
+                <select
+                  value={homeCountry}
+                  onChange={(e) => setHomeCountry(e.target.value)}
+                  className="w-full md:w-auto bg-white/5 border border-white/10 rounded-xl pl-11 pr-8 py-3.5 text-paper appearance-none focus:outline-none focus:border-brass/50 focus:bg-white/8 transition-all duration-300 cursor-pointer"
+                >
+                  {COUNTRIES.map(c => (
+                    <option key={c.code} value={c.code} className="bg-ink-navy text-paper">{c.flag} {c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => doSearch(query)}
+                disabled={loading || !query.trim()}
+                className="relative bg-gradient-to-r from-brass to-brass/80 text-ink-navy px-7 py-3.5 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-brass/20 hover:shadow-brass/40"
               >
-                {COUNTRIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
-                ))}
-              </select>
+                {loading ? (
+                  <><Loader2 size={18} className="animate-spin" /> Searching...</>
+                ) : (
+                  <><Search size={18} /> Compare Prices</>
+                )}
+              </motion.button>
             </div>
-            <button
-              onClick={() => doSearch(query)}
-              disabled={loading || !query.trim()}
-              className="bg-brass text-ink-navy px-6 py-3 rounded-lg font-semibold hover:bg-brass/90 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <><Loader2 size={18} className="animate-spin" /> Searching...</>
-              ) : (
-                <><Search size={18} /> Compare Prices</>
-              )}
-            </button>
+            <p className="text-xs text-paper/30 mt-3 text-center">
+              Searches across Amazon, Flipkart, Best Buy, and 100+ retailers in 7 countries
+            </p>
           </div>
-          <p className="text-xs text-paper/40 mt-2 text-center">
-            Searches across Amazon, Flipkart, Best Buy, and 100+ retailers in 7 countries
-          </p>
         </motion.div>
 
         <AnimatePresence>
@@ -315,36 +365,41 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-ink-navy/80 border border-brass/30 rounded-2xl p-6 mb-8"
+              className="relative mt-8"
             >
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles size={20} className="text-brass" />
-                <h3 className="font-display text-lg font-semibold">Let me narrow that down for you</h3>
-              </div>
-              <p className="text-sm text-paper/50 mb-5">
-                Your search &quot;{clarify.original_query}&quot; could mean a few things. Pick what you need:
-              </p>
-              <div className="space-y-4">
-                {clarify.questions.map((q, qi) => (
-                  <div key={qi}>
-                    <p className="text-sm font-medium text-paper/70 mb-2">{q.question}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {q.options.map((opt, oi) => (
-                        <button
-                          key={oi}
-                          onClick={() => handleClarifyAnswer(qi, opt)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition border ${
-                            selectedAnswers[qi] === opt
-                              ? 'bg-teal/20 border-teal text-teal'
-                              : 'bg-ink-navy/50 border-brass/10 text-paper/70 hover:border-brass/40 hover:text-paper'
-                          }`}
-                        >
-                          {opt}
-                        </button>
-                      ))}
+              <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-brass/20 via-teal/20 to-brass/20 opacity-50 blur-sm" />
+              <div className="relative bg-ink-navy/90 backdrop-blur-xl border border-white/5 rounded-2xl p-6 md:p-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sparkles size={20} className="text-brass" />
+                  <h3 className="font-display text-lg font-semibold">Let me narrow that down for you</h3>
+                </div>
+                <p className="text-sm text-paper/50 mb-5">
+                  Your search &quot;{clarify.original_query}&quot; could mean a few things. Pick what you need:
+                </p>
+                <div className="space-y-4">
+                  {clarify.questions.map((q, qi) => (
+                    <div key={qi}>
+                      <p className="text-sm font-medium text-paper/70 mb-2">{q.question}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {q.options.map((opt, oi) => (
+                          <motion.button
+                            key={oi}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleClarifyAnswer(qi, opt)}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                              selectedAnswers[qi] === opt
+                                ? 'bg-teal/20 border-teal text-teal shadow-lg shadow-teal/10'
+                                : 'bg-white/5 border-white/10 text-paper/70 hover:border-brass/40 hover:text-paper hover:bg-white/8'
+                            }`}
+                          >
+                            {opt}
+                          </motion.button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </motion.div>
           )}
@@ -353,12 +408,15 @@ export default function Home() {
         <AnimatePresence>
           {error && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="bg-ochre/20 border border-ochre/30 rounded-xl p-4 text-center text-ochre mb-8"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative mt-6"
             >
-              {error}
+              <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-ochre/30 to-ochre/10 blur-sm" />
+              <div className="relative bg-ink-navy/90 backdrop-blur-xl border border-ochre/20 rounded-xl p-4 text-center text-ochre">
+                {error}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -379,12 +437,25 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-center text-paper/30 py-16"
+            transition={{ delay: 0.6 }}
+            className="text-center py-20"
           >
-            <Globe size={48} className="mx-auto mb-4 opacity-50" />
-            <p className="text-lg">Enter a product above to compare prices worldwide</p>
-            <p className="text-sm mt-2">Try: "iPhone 17 Pro Max", "Sony WH-1000XM5", "Dyson V15"</p>
+            <div className="relative inline-block mb-6">
+              <div className="absolute inset-0 bg-brass/10 blur-3xl rounded-full" />
+              <Globe size={56} className="relative text-brass/40" />
+            </div>
+            <p className="text-lg text-paper/50">Enter a product above to compare prices worldwide</p>
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {['iPhone 17 Pro Max', 'Sony WH-1000XM5', 'Dyson V15'].map((term) => (
+                <button
+                  key={term}
+                  onClick={() => { setQuery(term); doSearch(term) }}
+                  className="px-4 py-1.5 rounded-full text-sm text-paper/40 border border-white/10 hover:border-brass/30 hover:text-paper/60 transition-all duration-200"
+                >
+                  {term}
+                </button>
+              ))}
+            </div>
           </motion.div>
         )}
       </div>
