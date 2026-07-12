@@ -102,6 +102,7 @@ export default function Home() {
     currentRot.current.y += (targetRot.current.y - currentRot.current.y) * 0.08
 
     try {
+      const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
       const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye') || spline.findObjectByName('eyeL')
       const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye') || spline.findObjectByName('eyeR')
       const eye = spline.findObjectByName('Eye') || spline.findObjectByName('eye') || spline.findObjectByName('Eyes')
@@ -109,6 +110,7 @@ export default function Home() {
       const rotX = currentRot.current.x
       const rotY = currentRot.current.y
 
+      if (head) { head.rotation.x = rotX * 0.6; head.rotation.y = rotY * 0.6 }
       if (eyeL) { eyeL.rotation.x = rotX; eyeL.rotation.y = rotY }
       if (eyeR) { eyeR.rotation.x = rotX; eyeR.rotation.y = rotY }
       if (eye && !eyeL && !eyeR) { eye.rotation.x = rotX; eye.rotation.y = rotY }
