@@ -18,6 +18,19 @@ COUNTRY_LANGUAGES = {
     "AU": "en", "DE": "de", "CA": "en",
 }
 
+NOISE_WORDS = {"the", "a", "an", "with", "for", "and", "or", "new", "original", "genuine", "imported", "international"}
+
+
+def _extract_keywords(product: str) -> list[str]:
+    words = product.lower().split()
+    return [w for w in words if w not in NOISE_WORDS and len(w) > 1]
+
+
+def _is_relevant(title: str, keywords: list[str]) -> bool:
+    title_lower = title.lower()
+    matched = sum(1 for kw in keywords if kw in title_lower)
+    return matched >= max(1, len(keywords) // 2)
+
 
 def search_prices(product: str, country: str) -> list[dict]:
     cache_key = f"prices:{product}:{country}"
@@ -38,22 +51,30 @@ def search_prices(product: str, country: str) -> list[dict]:
         "api_key": SERPAPI_KEY,
         "gl": country,
         "hl": COUNTRY_LANGUAGES.get(country, "en"),
-        "num": 10,
+        "num": 20,
     }
 
     search = GoogleSearch(params)
     data = search.get_dict()
 
+    keywords = _extract_keywords(product)
+
     results = []
     for item in data.get("shopping_results", []):
+        title = item.get("title", "")
+        price = item.get("extracted_price", 0)
+        if price <= 0:
+            continue
+        if not _is_relevant(title, keywords):
+            continue
         results.append({
             "product": product,
             "country": country,
             "seller": item.get("source", "Unknown"),
-            "price": item.get("extracted_price", 0),
+            "price": price,
             "currency": item.get("currency", "USD"),
             "url": item.get("product_link") or item.get("link") or "",
-            "title": item.get("title", ""),
+            "title": title,
             "rating": item.get("rating"),
             "reviews": item.get("reviews"),
             "thumbnail": item.get("thumbnail"),

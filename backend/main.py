@@ -196,7 +196,24 @@ async def get_seller_offers(request: Request):
     matched = []
     for offer in offers:
         merchant = offer.get("merchant", "").lower()
-        if merchant in seller.lower() or seller.lower() in merchant or merchant in "electronics":
+        seller_lower = seller.lower()
+        if (merchant in seller_lower or seller_lower in merchant
+                or merchant in "electronics"
+                or any(t in seller_lower for t in ["amazon", "flipkart", "best buy", "croma", "currys", "media markt", "jb hi-fi"])):
+            savings = normalize_offer(offer, price)
+            if savings > 0:
+                matched.append({
+                    "bank": offer.get("bank_name", ""),
+                    "card_type": offer.get("card_type", ""),
+                    "offer_type": offer.get("offer_type", ""),
+                    "value": offer.get("value", 0),
+                    "value_type": offer.get("value_type", "percent"),
+                    "savings": round(savings, 2),
+                    "description": offer.get("description", ""),
+                })
+
+    if not matched:
+        for offer in offers:
             savings = normalize_offer(offer, price)
             if savings > 0:
                 matched.append({
