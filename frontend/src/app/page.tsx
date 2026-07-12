@@ -85,6 +85,43 @@ export default function Home() {
     splineRef.current = spline
   }, [])
 
+  // Smooth eye tracking with lerp
+  const targetRot = useRef({ x: 0, y: 0 })
+  const currentRot = useRef({ x: 0, y: 0 })
+  const rafId = useRef<number | null>(null)
+
+  const animateEyes = useCallback(() => {
+    const spline = splineRef.current
+    if (!spline) {
+      rafId.current = requestAnimationFrame(animateEyes)
+      return
+    }
+
+    // Lerp towards target for smooth organic movement
+    currentRot.current.x += (targetRot.current.x - currentRot.current.x) * 0.08
+    currentRot.current.y += (targetRot.current.y - currentRot.current.y) * 0.08
+
+    try {
+      const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye') || spline.findObjectByName('eyeL')
+      const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye') || spline.findObjectByName('eyeR')
+      const eye = spline.findObjectByName('Eye') || spline.findObjectByName('eye') || spline.findObjectByName('Eyes')
+
+      const rotX = currentRot.current.x
+      const rotY = currentRot.current.y
+
+      if (eyeL) { eyeL.rotation.x = rotX; eyeL.rotation.y = rotY }
+      if (eyeR) { eyeR.rotation.x = rotX; eyeR.rotation.y = rotY }
+      if (eye && !eyeL && !eyeR) { eye.rotation.x = rotX; eye.rotation.y = rotY }
+    } catch {}
+
+    rafId.current = requestAnimationFrame(animateEyes)
+  }, [])
+
+  useEffect(() => {
+    rafId.current = requestAnimationFrame(animateEyes)
+    return () => { if (rafId.current) cancelAnimationFrame(rafId.current) }
+  }, [animateEyes])
+
   const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = heroRef.current?.getBoundingClientRect()
     if (!rect) return
@@ -106,30 +143,11 @@ export default function Home() {
       cursorRef.current.style.opacity = '1'
     }
 
-    // Rotate robot head + eyes
-    const spline = splineRef.current
-    if (!spline) return
-
+    // Set eye tracking target (robot looks toward cursor)
     const x = ((relX / rect.width) - 0.5) * 2
     const y = ((relY / rect.height) - 0.5) * 2
-
-    try {
-      const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
-      if (head) {
-        head.rotation.y = x * 25
-        head.rotation.x = -y * 15
-      }
-      const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye')
-      const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye')
-      if (eyeL) {
-        eyeL.rotation.y = x * 35
-        eyeL.rotation.x = -y * 20
-      }
-      if (eyeR) {
-        eyeR.rotation.y = x * 35
-        eyeR.rotation.x = -y * 20
-      }
-    } catch {}
+    targetRot.current.y = x * 30
+    targetRot.current.x = -y * 20
   }, [])
 
   const handleHeroMouseLeave = useCallback(() => {
