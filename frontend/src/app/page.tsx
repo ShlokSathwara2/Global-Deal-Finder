@@ -314,35 +314,29 @@ export default function Home() {
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-gradient-to-b from-background/95 to-background/80 cursor-none"
+        className="relative w-full h-[400px] md:h-[500px] overflow-hidden cursor-none"
+        style={{ background: 'linear-gradient(to bottom, #0B1220f2, #0B1220cc)' }}
       >
-        {/* Enhanced cursor-following spotlight with multiple layers and dynamic glow */}
+        {/* Cursor-following spotlight glow */}
         <div
           ref={spotlightRef}
-          className="pointer-events-none absolute z-[2] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-500"
+          className="pointer-events-none absolute z-[2] -translate-x-1/2 -translate-y-1/2 opacity-0"
+          style={{ transition: 'opacity 0.4s ease', width: 600, height: 600 }}
         >
-          {/* Outer glow - large and soft */}
-          <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent blur-3xl animate-pulse-6s" />
-          {/* Middle glow - medium intensity */}
-          <div className="absolute inset-0 bg-gradient-radial from-primary/15 via-transparent to-transparent blur-xl" />
-          {/* Inner glow - bright core */}
-          <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-l" />
-          {/* Dynamic sparkle effect */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,transparent_30%,rgba(255,255,255,0.1)_70%)] animate-sparkle-4s" />
+          <div className="absolute inset-0 blur-3xl" style={{ background: 'radial-gradient(circle, rgba(138,109,30,0.15) 0%, transparent 70%)', animation: 'pulse-glow 6s ease-in-out infinite' }} />
+          <div className="absolute inset-0 blur-xl" style={{ background: 'radial-gradient(circle, rgba(138,109,30,0.2) 0%, transparent 60%)' }} />
+          <div className="absolute inset-0 blur-lg" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 50%)' }} />
         </div>
-        {/* Enhanced custom cursor with multiple layers and subtle animations */}
+        {/* Custom cursor dot */}
         <div
           ref={cursorRef}
-          className="pointer-events-none absolute z-[3] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-400"
+          className="pointer-events-none absolute z-[3] -translate-x-1/2 -translate-y-1/2 opacity-0"
+          style={{ transition: 'opacity 0.2s ease', width: 40, height: 40 }}
         >
-          {/* Outer pulse ring */}
-          <div className="absolute inset-0 border-2 border-primary/30 rounded-full opacity-0 animate-pulse-4" />
-          {/* Middle ring */}
-          <div className="absolute inset-0.5 border-1 border-primary/50 rounded-full opacity-0 animate-pulse-3" />
-          {/* Inner core with glow */}
-          <div className="absolute inset-1 bg-primary/80 rounded-full opacity-0 drop-shadow-[0_0_8px_rgba(138,109,30,0.6)]" />
-          {/* Tiny center dot */}
-          <div className="absolute inset-2 bg-white/80 rounded-full" />
+          <div className="absolute inset-0 rounded-full border-2 opacity-50" style={{ borderColor: 'rgba(138,109,30,0.4)', animation: 'pulse-ring 4s ease-in-out infinite' }} />
+          <div className="absolute rounded-full" style={{ inset: 3, border: '1px solid rgba(138,109,30,0.6)', animation: 'pulse-ring 3s ease-in-out infinite' }} />
+          <div className="absolute rounded-full" style={{ inset: 8, background: 'rgba(138,109,30,0.8)', boxShadow: '0 0 12px rgba(138,109,30,0.6)' }} />
+          <div className="absolute rounded-full bg-white" style={{ inset: 12, opacity: 0.9 }} />
         </div>
         <div className="absolute inset-0 z-0">
           <SplineScene
@@ -358,12 +352,10 @@ export default function Home() {
             transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           >
             <div className="flex items-center justify-center gap-4 mb-6">
-              <Globe size={36} className="text-primary drop-shadow-[0_0_15px_rgba(138,109,30,0.3)]" />
+              <Globe size={36} className="text-brass" style={{ filter: 'drop-shadow(0 0 15px rgba(138,109,30,0.3))' }} />
               <div className="space-y-1">
-                <h1 className="font-display text-4xl md:text-5xl font-bold drop-shadow-[0_0_20px_rgba(138,109,30,0.4)]">
-                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    Global Deal Finder
-                  </span>
+                <h1 className="font-display text-4xl md:text-5xl font-bold" style={{ filter: 'drop-shadow(0 0 20px rgba(138,109,30,0.4))' }}>
+                  Global Deal Finder
                 </h1>
                 <p className="text-paper/70 text-lg drop-shadow-md max-w-xl mx-auto">
                   Best Price + Best Card + Best Timing, Worldwide
@@ -372,8 +364,8 @@ export default function Home() {
             </div>
           </motion.div>
         </div>
-        {/* Enhanced bottom gradient with subtle animation */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background/90 to-transparent z-10" />
+        {/* Bottom gradient fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none z-10" style={{ background: 'linear-gradient(to top, #0B1220, transparent)' }} />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-20 pb-8 md:pb-16">
@@ -386,10 +378,10 @@ export default function Home() {
           className="relative group"
         >
           {/* Animated gradient border with glow */}
-          <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/40 opacity-80 group-hover:opacity-100 transition-opacity duration-800 blur-2xl" />
-          <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/40 opacity-60 group-hover:opacity-100 transition-opacity duration-800" />
+          <div className="absolute -inset-[2px] rounded-2xl opacity-80 group-hover:opacity-100 blur-2xl" style={{ background: 'linear-gradient(to right, rgba(138,109,30,0.4), rgba(47,111,98,0.4), rgba(138,109,30,0.4))', transition: 'opacity 0.3s ease' }} />
+          <div className="absolute -inset-[2px] rounded-2xl opacity-60 group-hover:opacity-100" style={{ background: 'linear-gradient(to right, rgba(138,109,30,0.4), rgba(47,111,98,0.4), rgba(138,109,30,0.4))', transition: 'opacity 0.3s ease' }} />
 
-          <div className="relative bg-background/85 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10">
+          <div className="relative backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10" style={{ background: 'rgba(11,18,32,0.85)' }}>
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative" ref={dropdownRef}>
                 <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/50 z-10" />
@@ -469,7 +461,7 @@ export default function Home() {
                 whileTap={{ scale: 0.98 }}
                 onClick={() => doSearch(query)}
                 disabled={loading || !query.trim()}
-                className="relative w-full md:w-auto bg-gradient-to-r from-primary to-secondary text-background font-semibold px-6 py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-400 shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.97]"
+                className="relative w-full md:w-auto bg-gradient-to-r from-primary to-secondary text-background font-semibold px-6 py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.97]"
               >
                 <div className="flex items-center gap-3">
                   {loading ? (

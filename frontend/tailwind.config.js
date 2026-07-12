@@ -13,6 +13,10 @@ module.exports = {
         'brass': '#8A6D1E',
         'ochre': '#9C3F2E',
         'teal': '#2F6F62',
+        'primary': '#8A6D1E',
+        'secondary': '#2F6F62',
+        'background': '#0B1220',
+        'foreground': '#F6F3EA',
       },
       fontFamily: {
         display: ['Fraunces', 'serif'],

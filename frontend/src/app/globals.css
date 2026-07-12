@@ -7,9 +7,9 @@
 :root {
   --background: #0B1220;
   --foreground: #F6F3EA;
-  --primary: #8A6D1E; /* Brass */
-  --secondary: #00D4AA; /* Teal */
-  --accent: #FF6B6B; /* Coral */
+  --primary: #8A6D1E;
+  --secondary: #00D4AA;
+  --accent: #FF6B6B;
   --muted: rgba(246, 243, 234, 0.3);
   --border: rgba(246, 243, 234, 0.1);
 }
@@ -34,7 +34,6 @@ html, body, #__next {
   scroll-behavior: smooth;
 }
 
-/* Premium typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Playfair Display', serif;
   font-weight: 700;
@@ -67,7 +66,6 @@ p {
   opacity: 0.9;
 }
 
-/* Enhanced buttons */
 .btn-primary {
   @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold px-8 py-3 rounded-xl
          transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-xl
@@ -77,8 +75,8 @@ p {
 
 .btn-primary::before {
   content: '';
-  @apply absolute inset-0 bg-gradient-to-r from-transparent to-primary/20
-         animate-[gradient-shift_3s_ease_infinite];
+  @apply absolute inset-0 bg-gradient-to-r from-transparent to-primary/20;
+  animation: gradient-shift 3s ease infinite;
 }
 
 @keyframes gradient-shift {
@@ -93,22 +91,19 @@ p {
          active:scale-[0.98];
 }
 
-/* Premium feel */
 .card-premium {
-  @app lua
   @apply bg-background/60 backdrop-blur-xl border border-white/10 rounded-2xl
-         px-6 py-8 transition-all duration-400 ease-in-out
+         px-6 py-8 transition-all duration-300 ease-in-out
          hover:bg-background/80 hover:border-white/20 hover:shadow-xl
          shadow-lg shadow-black/20 relative overflow-hidden;
 }
 
 .card-premium::before {
   content: '';
-  @apply absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent
-         animate-[gradient-shift_3s_ease_infinite] pointer-events-none;
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent pointer-events-none;
+  animation: gradient-shift 3s ease infinite;
 }
 
-/* Elegant input styles */
 .input-premium {
   @apply w-full bg-background/60 backdrop-blur-xl border border-white/10
          rounded-xl px-6 py-4 text-white placeholder-gray-400
@@ -116,7 +111,6 @@ p {
          transition-all duration-300 text-base;
 }
 
-/* Elegant select styles */
 .select-premium {
   @apply w-full bg-background/60 backdrop-blur-xl border border-white/10
          rounded-xl px-6 py-4 text-white placeholder-gray-400
@@ -124,7 +118,6 @@ p {
          transition-all duration-300 text-base appearance-none cursor-pointer;
 }
 
-/* Elegant button styles */
 .button-premium {
   @apply w-full bg-gradient-to-r from-primary to-secondary text-background
          font-semibold px-6 py-3 rounded-xl transition-all duration-300
@@ -132,14 +125,8 @@ p {
          active:scale-[0.98] border border-white/20 backdrop-blur-sm;
 }
 
-/* Gradient text */
 .gradient-text {
   @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
-}
-
-/* Subtle animations */
-.fade-in-up {
-  @animate animate-fade-in-up;
 }
 
 .animate-fade-in-up {
@@ -158,133 +145,59 @@ p {
   }
 }
 
-/* Floating animation */
 .float {
   animation: float 6s ease-in-out infinite;
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-/* Pulse animation */
 .pulse-slow {
-  animation: pulse 4s ease-in-out infinite;
+  animation: pulse-soft 4s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
-}
-
-/* Glassmorphism */
-.glass {
-  @apply bg-background/40 backdrop-blur-xl border border-white/10
-         rounded-xl shadow-lg;
-}
-
-/* Custom cursor enhancements */
-.custom-cursor {
-  @apply pointer-events-none absolute -translate-x-1/2 -translate-y-1/2
-         transition-all duration-200 pointer-events-none z-[9999];
-}
-
-.cursor-dot {
-  @apply width-4 height-4 bg-primary rounded-full
-         opacity-0 transition-opacity duration-200;
-}
-
-.cursor-ring {
-  @apply width-12 height-12 border-2 border-primary/50 rounded-full
-         opacity-0 transition-opacity duration-200;
-}
-
-.cursor-ring-outer {
-  @apply width-20 height-20 border-1 border-primary/20 rounded-full
-         opacity-0 transition-opacity duration-200 animate-pulse-slow;
-}
-
-/* Spotlight enhancements */
-.spotlight-premium {
-  @apply pointer-events-none absolute -translate-x-1/2 -translate-y-1/2
-         opacity-0 transition-opacity duration-300 z-[2];
-}
-
-.spotlight-inner {
-  @apply w-[400px] h-[400px] bg-gradient-radial from-white/20 via-transparent to-transparent
-         blur-xl animate-[pulse_4s_ease_infinite];
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-/* Hero section enhancements */
-.hero-gradient {
-  @apply absolute inset-0 bg-gradient-to-b from-background/90 to-transparent
-         pointer-events-none z-[1];
-}
-
-.hero-content {
-  @apply relative z-10 flex flex-col items-center justify-center h-full px-6 text-center;
-}
-
-/* Results card enhancements */
-.result-card {
-  @apply bg-background/60 backdrop-blur-xl border border-white/10 rounded-2xl
-         p-6 transition-all duration-400 hover:bg-background/80
-         hover:border-white/20 hover:shadow-xl shadow-lg shadow-black/20;
-}
-
-.result-card:hover {
-  transform: translateY(-4px);
-}
-
-/* Loading enhancements */
-.loader-premium {
-  @apply w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full
-         animate-spin duration-200;
-}
-
-/* Responsive enhancements */
-@media (min-width: 768px) {
-  h1 {
-    font-size: 4.5rem;
-  }
-
-  h2 {
-    font-size: 3.5rem;
-  }
-
-  .hero-content {
-    px-8;
-  }
-}
-
-@media (min-width: 1024px) {
-  h1 {
-    font-size: 5rem;
-  }
-
-  h2 {
-    font-size: 4rem;
-  }
-}
-
-/* Custom animations for enhanced UI */
 @keyframes pulse-soft {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+.glass {
+  @apply bg-background/40 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg;
+}
+
+.loader {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #8A6D1E;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loader-premium {
+  @apply w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full;
+  animation: spin 0.8s linear infinite;
+}
+
+.glass {
+  @apply bg-background/40 backdrop-blur-xl border border-white/10 rounded-xl shadow-lg;
+}
+
+.spotlight-inner {
+  @apply w-[400px] h-[400px] blur-xl;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+  animation: pulse-scale 4s ease-in-out infinite;
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 @keyframes sparkle {
@@ -297,10 +210,6 @@ p {
   50% { transform: translateY(-10px) rotate(2deg); }
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 3s ease-in-out infinite;
-}
-
 .animate-sparkle {
   animation: sparkle 4s ease-in-out infinite;
 }
@@ -309,18 +218,6 @@ p {
   animation: float-slow 6s ease-in-out infinite;
 }
 
-/* Gradient animations */
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.animate-gradient-shift {
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-
-/* Blast effect for buttons */
 @keyframes blast {
   0% { transform: scale(0); opacity: 0; }
   50% { transform: scale(1.2); opacity: 0.4; }
@@ -341,65 +238,43 @@ p {
   animation: blast 0.8s ease-out;
 }
 
-/* Pulse animations for cursor */
-@keyframe pulse-4 {
+@keyframes pulse-ring {
   0%, 100% { transform: scale(1); opacity: 0.5; }
   50% { transform: scale(1.2); opacity: 0.8; }
 }
 
-@keyframes pulse-3 {
-  0%, 100% { transform: scale(1); opacity: 0.3; }
-  50% { transform: scale(1.1); opacity: 0.6; }
+.animate-pulse-ring-4 {
+  animation: pulse-ring 4s ease-in-out infinite;
 }
 
-.animate-pulse-4 {
-  animation: pulse-4 4s ease-in-out infinite;
+.animate-pulse-ring-3 {
+  animation: pulse-ring 3s ease-in-out infinite;
 }
 
-.animate-pulse-3 {
-  animation: pulse-3 3s ease-in-out infinite;
-}
-
-/* Specific animations for hero elements */
-@keyframes pulse-6s {
+@keyframes pulse-glow {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
 }
 
-.animate-pulse-6s {
-  animation: pulse-6s 6s ease-in-out infinite;
+.animate-pulse-glow {
+  animation: pulse-glow 6s ease-in-out infinite;
 }
 
-@keyframes sparkle-4s {
+@keyframes sparkle-glow {
   0%, 100% { opacity: 0; }
   50% { opacity: 0.3; }
 }
 
-.animate-sparkle-4s {
-  animation: sparkle-4s 4s ease-in-out infinite;
+.animate-sparkle-glow {
+  animation: sparkle-glow 4s ease-in-out infinite;
 }
 
-/* Responsive enhancements */
 @media (min-width: 768px) {
-  h1 {
-    font-size: 4.5rem;
-  }
-
-  h2 {
-    font-size: 3.5rem;
-  }
-
-  .hero-content {
-    px-8;
-  }
+  h1 { font-size: 4.5rem; }
+  h2 { font-size: 3.5rem; }
 }
 
 @media (min-width: 1024px) {
-  h1 {
-    font-size: 5rem;
-  }
-
-  h2 {
-    font-size: 4rem;
-  }
+  h1 { font-size: 5rem; }
+  h2 { font-size: 4rem; }
 }
