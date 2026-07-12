@@ -28,6 +28,238 @@ const MARKER_POSITIONS: Record<string, { angle: number; ring: number }> = {
   CA: { angle: 230, ring: 0 },
 }
 
+// Bouncing pointer component
+function BouncingPointer({
+  countries,
+  activeIndex,
+  markerPositions,
+  rotation,
+}: {
+  countries: typeof COUNTRIES
+  activeIndex: number
+  markerPositions: Record<string, { angle: number; ring: number }>
+  rotation: number
+}) {
+  const active = countries[activeIndex]
+  const pos = markerPositions[active.code]
+
+  // Calculate pointer position on the outer edge of the globe
+  // The pointer sits outside and points inward toward the marker
+  const pointerAngle = ((pos.angle - rotation) * Math.PI) / 180
+  const globeRadius = 150 // half of 300px globe
+  const pointerDistance = globeRadius + 35 // distance from center to pointer
+
+  // Position on the circle around the globe
+  const px = 210 + Math.cos(pointerAngle) * pointerDistance // 210 = center of 420px container
+  const py = 210 + Math.sin(pointerAngle) * pointerDistance
+
+  // Angle the pointer should face (toward center of globe)
+  const faceAngle = Math.atan2(210 - py, 210 - px) * (180 / Math.PI)
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-20">
+      {/* Trail dots - ghost positions that fade out */}
+      {[...Array(5)].map((_, i) => {
+        const trailIndex = ((activeIndex - (i + 1) + countries.length * 2) % countries.length)
+        const trailCountry = countries[trailIndex]
+        const trailPos = markerPositions[trailCountry.code]
+        const trailAngle = ((trailPos.angle - rotation) * Math.PI) / 180
+        const trailX = 210 + Math.cos(trailAngle) * pointerDistance
+        const trailY = 210 + Math.sin(trailAngle) * pointerDistance
+
+        return (
+          <motion.div
+            key={`trail-${i}`}
+            className="absolute"
+            animate={{
+              left: trailX,
+              top: trailY,
+              opacity: 0,
+              scale: 0,
+            }}
+            transition={{
+              duration: 0.3,
+              delay: 0,
+            }}
+            style={{ transform: 'translate(-50%, -50%)' }}
+          >
+            <div
+              className="w-2 h-2 rounded-full"
+              style={{
+                background: `${trailCountry.color}20`,
+                boxShadow: `0 0 8px ${trailCountry.color}10`,
+              }}
+            />
+          </motion.div>
+        )
+      })}
+
+      {/* Main bouncing pointer */}
+      <motion.div
+        className="absolute"
+        animate={{
+          left: px,
+          top: py,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 200,
+          damping: 12,
+          mass: 0.8,
+        }}
+        style={{
+          transform: 'translate(-50%, -50%)',
+          zIndex: 20,
+        }}
+      >
+        {/* Glow behind pointer */}
+        <motion.div
+          className="absolute -inset-4 rounded-full"
+          animate={{
+            background: [
+              `radial-gradient(circle, ${active.color}15 0%, transparent 70%)`,
+              `radial-gradient(circle, ${active.color}25 0%, transparent 70%)`,
+              `radial-gradient(circle, ${active.color}15 0%, transparent 70%)`,
+            ],
+          }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+
+        {/* Pointer body - pin shape */}
+        <motion.div
+          className="relative"
+          animate={{ rotate: faceAngle }}
+          transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+        >
+          {/* Beam line from pointer to globe center */}
+          <div
+            className="absolute top-1/2 left-1/2 origin-left"
+            style={{
+              width: pointerDistance - 20,
+              height: '1px',
+              background: `linear-gradient(to right, ${active.color}40, transparent)`,
+              transform: 'translateY(-50%)',
+            }}
+          />
+
+          {/* Pointer pin */}
+          <motion.div
+            className="relative flex items-center justify-center"
+            animate={{
+              scale: [1, 1.15, 1],
+              y: [0, -3, 0],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          >
+            {/* Pin glow */}
+            <div
+              className="absolute w-8 h-8 rounded-full"
+              style={{
+                background: `radial-gradient(circle, ${active.color}30 0%, transparent 70%)`,
+                filter: 'blur(4px)',
+              }}
+            />
+            {/* Pin body */}
+            <div
+              className="relative w-5 h-5 rounded-full flex items-center justify-center"
+              style={{
+                background: `radial-gradient(circle at 35% 35%, ${active.color}, ${active.color}90)`,
+                boxShadow: `0 0 12px ${active.color}50, 0 0 24px ${active.color}25, 0 2px 8px rgba(0,0,0,0.3)`,
+              }}
+            >
+              <div
+                className="w-2 h-2 rounded-full"
+                style={{
+                  background: 'rgba(255,255,255,0.7)',
+                  boxShadow: '0 0 4px rgba(255,255,255,0.5)',
+                }}
+              />
+            </div>
+            {/* Pin tail (triangle pointing toward globe) */}
+            <div
+              className="absolute top-full left-1/2 -translate-x-1/2"
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '5px solid transparent',
+                borderRight: '5px solid transparent',
+                borderTop: `8px solid ${active.color}`,
+                filter: `drop-shadow(0 2px 4px ${active.color}40)`,
+              }}
+            />
+          </motion.div>
+        </motion.div>
+
+        {/* Ripple rings emanating from pointer */}
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={`ring-${i}`}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{
+              width: 20,
+              height: 20,
+              border: `1px solid ${active.color}30`,
+            }}
+            animate={{
+              scale: [1, 3],
+              opacity: [0.5, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              delay: i * 0.6,
+              ease: 'easeOut',
+            }}
+          />
+        ))}
+      </motion.div>
+
+      {/* Country label next to pointer */}
+      <motion.div
+        className="absolute z-30"
+        animate={{
+          left: px + (px > 210 ? 25 : -25),
+          top: py - 30,
+        }}
+        transition={{
+          type: 'spring',
+          stiffness: 200,
+          damping: 12,
+          mass: 0.8,
+        }}
+        style={{ transform: 'translate(-50%, -50%)' }}
+      >
+        <motion.div
+          key={active.code}
+          initial={{ opacity: 0, scale: 0.7, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.15 }}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg whitespace-nowrap"
+          style={{
+            background: 'rgba(11,18,32,0.9)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${active.color}30`,
+            boxShadow: `0 4px 16px rgba(0,0,0,0.3), 0 0 20px ${active.color}10`,
+          }}
+        >
+          <span className="text-lg">{active.flag}</span>
+          <span className="text-xs font-semibold text-paper/90">{active.name}</span>
+          <motion.div
+            className="w-1.5 h-1.5 rounded-full"
+            style={{ background: active.color }}
+            animate={{ scale: [1, 1.4, 1] }}
+            transition={{ duration: 0.8, repeat: Infinity }}
+          />
+        </motion.div>
+      </motion.div>
+    </div>
+  )
+}
+
 export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
   const [activeIndex, setActiveIndex] = useState(0)
   const [rotation, setRotation] = useState(0)
@@ -287,6 +519,14 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Bouncing Pointer - jumps between countries */}
+      <BouncingPointer
+        countries={COUNTRIES}
+        activeIndex={activeIndex}
+        markerPositions={MARKER_POSITIONS}
+        rotation={rotation}
+      />
 
       {/* Side indicators */}
       <div className="absolute top-1/2 -translate-y-1/2 -left-4 md:-left-8 space-y-2">
