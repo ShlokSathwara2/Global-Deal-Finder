@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Globe, Loader2, MapPin, Sparkles, ChevronRight, X } from 'lucide-react'
 import ResultsView from '@/components/ResultsView'
 import { SplineScene } from '@/components/ui/splite'
-import { Spotlight } from '@/components/ui/spotlight'
 
 const COUNTRIES = [
   { code: 'IN', name: 'India', flag: '\u{1F1EE}\u{1F1F3}' },
@@ -45,6 +44,8 @@ export default function Home() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const splineRef = useRef<any>(null)
   const heroRef = useRef<HTMLDivElement>(null)
+  const spotlightRef = useRef<HTMLDivElement>(null)
+  const cursorRef = useRef<HTMLDivElement>(null)
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < 2) {
@@ -85,12 +86,32 @@ export default function Home() {
   }, [])
 
   const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const spline = splineRef.current
-    if (!spline || !heroRef.current) return
+    const rect = heroRef.current?.getBoundingClientRect()
+    if (!rect) return
 
-    const rect = heroRef.current.getBoundingClientRect()
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2
+    const relX = e.clientX - rect.left
+    const relY = e.clientY - rect.top
+
+    // Move cursor-following spotlight
+    if (spotlightRef.current) {
+      spotlightRef.current.style.left = `${relX}px`
+      spotlightRef.current.style.top = `${relY}px`
+      spotlightRef.current.style.opacity = '1'
+    }
+
+    // Move custom cursor dot
+    if (cursorRef.current) {
+      cursorRef.current.style.left = `${relX}px`
+      cursorRef.current.style.top = `${relY}px`
+      cursorRef.current.style.opacity = '1'
+    }
+
+    // Rotate robot head + eyes
+    const spline = splineRef.current
+    if (!spline) return
+
+    const x = ((relX / rect.width) - 0.5) * 2
+    const y = ((relY / rect.height) - 0.5) * 2
 
     try {
       const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
@@ -109,6 +130,15 @@ export default function Home() {
         eyeR.rotation.x = -y * 20
       }
     } catch {}
+  }, [])
+
+  const handleHeroMouseLeave = useCallback(() => {
+    if (spotlightRef.current) {
+      spotlightRef.current.style.opacity = '0'
+    }
+    if (cursorRef.current) {
+      cursorRef.current.style.opacity = '0'
+    }
   }, [])
 
   const doSearch = async (searchQuery: string) => {
@@ -219,15 +249,38 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      {/* Hero with 3D Spline background + mouse tracking */}
+      {/* Hero with 3D Spline background + cursor spotlight */}
       <div
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
-        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black/[0.96]"
+        onMouseLeave={handleHeroMouseLeave}
+        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black cursor-none"
       >
-        <Spotlight
-          className="-top-40 left-0 md:left-60 md:-top-20"
-          fill="white"
+        {/* Cursor-following spotlight glow */}
+        <div
+          ref={spotlightRef}
+          className="pointer-events-none absolute z-[2] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-300"
+          style={{
+            width: '600px',
+            height: '600px',
+            left: '50%',
+            top: '50%',
+            background: 'radial-gradient(circle at center, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 30%, transparent 70%)',
+          }}
+        />
+        {/* Custom cursor dot */}
+        <div
+          ref={cursorRef}
+          className="pointer-events-none absolute z-[3] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-200"
+          style={{
+            width: '12px',
+            height: '12px',
+            left: '50%',
+            top: '50%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #8A6D1E 0%, #8A6D1E80 60%, transparent 100%)',
+            boxShadow: '0 0 20px 4px rgba(138,109,30,0.5)',
+          }}
         />
         <div className="absolute inset-0 z-0">
           <SplineScene
