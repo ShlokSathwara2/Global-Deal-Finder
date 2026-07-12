@@ -25,28 +25,37 @@ interface Seller {
   local_price: number
   imported_price: number
   carried_price: number
+  carried_price_home: number
   duty: number
   shipping: number
   vat: number
   under_duty_free: boolean
   emi_monthly: number
   emi_total: number
+  emi_monthly_home: number
+  emi_total_home: number
   card_offers: CardOffer[]
   best_card_savings: number
   final_price: number
+  final_price_home: number
 }
 
 interface CountryCardProps {
   country: string
   currency: string
   symbol: string
+  homeCurrency: string
+  homeSymbol: string
   totalSellers: number
   sellers: Seller[]
   bestPrice: number | null
+  bestPriceHome: number | null
   bestSeller: string
   bestUrl: string
   bestEmiPrice: number | null
+  bestEmiPriceHome: number | null
   bestEmiMonthly: number | null
+  bestEmiMonthlyHome: number | null
   bestEmiSeller: string
   bestEmiUrl: string
   countryBest: string
@@ -65,8 +74,8 @@ const COUNTRY_NAMES: Record<string, string> = {
 }
 
 export default function CountryCard({
-  country, currency, symbol, totalSellers, sellers, bestPrice, bestSeller, bestUrl,
-  bestEmiPrice, bestEmiMonthly, bestEmiSeller, bestEmiUrl,
+  country, currency, symbol, homeCurrency, homeSymbol, totalSellers, sellers, bestPrice, bestPriceHome, bestSeller, bestUrl,
+  bestEmiPrice, bestEmiPriceHome, bestEmiMonthly, bestEmiMonthlyHome, bestEmiSeller, bestEmiUrl,
   countryBest, isBestCountry, isBestEmiCountry, homeCountry, product,
 }: CountryCardProps) {
   const [expanded, setExpanded] = useState(false)
@@ -159,8 +168,9 @@ export default function CountryCard({
           >
             <p className="text-[10px] text-paper/40 mb-1 uppercase tracking-wider">One-Time Payment</p>
             <p className="font-mono text-xl font-bold text-teal">
-              {symbol}{bestPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {homeSymbol}{bestPriceHome?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
+            <p className="text-xs text-paper/35 mt-0.5">{symbol}{bestPrice?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {currency}</p>
             <p className="text-xs text-paper/50 mt-1">from {bestSeller}</p>
             <p className="flex items-center gap-1 text-xs text-brass mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
               Visit store <ExternalLink size={10} />
@@ -176,9 +186,10 @@ export default function CountryCard({
           >
             <p className="text-[10px] text-paper/40 mb-1 uppercase tracking-wider">EMI (12 months)</p>
             <p className="font-mono text-xl font-bold text-brass">
-              {symbol}{bestEmiMonthly?.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
+              {homeSymbol}{bestEmiMonthlyHome?.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
             </p>
-            <p className="text-xs text-paper/50 mt-1">Total: {symbol}{bestEmiPrice?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-paper/35 mt-0.5">{symbol}{bestEmiMonthly?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {currency}/mo</p>
+            <p className="text-xs text-paper/50 mt-1">Total: {homeSymbol}{bestEmiPriceHome?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
             <p className="flex items-center gap-1 text-xs text-brass mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
               Visit store <ExternalLink size={10} />
             </p>
@@ -214,10 +225,11 @@ export default function CountryCard({
                   <div className="text-right ml-2 flex items-center gap-2">
                     <div>
                       <p className="font-mono text-sm font-semibold text-teal">
-                        {symbol}{seller.carried_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        {homeSymbol}{seller.carried_price_home.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </p>
+                      <p className="font-mono text-xs text-paper/30">{symbol}{seller.carried_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                       <p className="font-mono text-xs text-brass">
-                        EMI: {symbol}{seller.emi_monthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
+                        EMI: {homeSymbol}{seller.emi_monthly_home.toLocaleString('en-US', { minimumFractionDigits: 2 })}/mo
                       </p>
                     </div>
                     <motion.div
@@ -254,16 +266,16 @@ export default function CountryCard({
                             <p className="font-mono font-semibold">{symbol}{seller.price.toLocaleString()}</p>
                           </div>
                           <div className="rounded-lg p-2.5" style={{ background: 'rgba(11,18,32,0.5)' }}>
-                            <p className="text-paper/40">Carried Price</p>
-                            <p className="font-mono font-semibold text-teal">{symbol}{seller.carried_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-paper/40">Carried ({homeCurrency})</p>
+                            <p className="font-mono font-semibold text-teal">{homeSymbol}{seller.carried_price_home.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                           </div>
                           <div className="rounded-lg p-2.5" style={{ background: 'rgba(11,18,32,0.5)' }}>
-                            <p className="text-paper/40">EMI Monthly</p>
-                            <p className="font-mono font-semibold text-brass">{symbol}{seller.emi_monthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-paper/40">EMI Monthly ({homeCurrency})</p>
+                            <p className="font-mono font-semibold text-brass">{homeSymbol}{seller.emi_monthly_home.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                           </div>
                           <div className="rounded-lg p-2.5" style={{ background: 'rgba(11,18,32,0.5)' }}>
-                            <p className="text-paper/40">EMI Total</p>
-                            <p className="font-mono font-semibold">{symbol}{seller.emi_total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                            <p className="text-paper/40">EMI Total ({homeCurrency})</p>
+                            <p className="font-mono font-semibold">{homeSymbol}{seller.emi_total_home.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                           </div>
                         </div>
 

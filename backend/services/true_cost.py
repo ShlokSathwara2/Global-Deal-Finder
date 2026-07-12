@@ -1,3 +1,34 @@
+# Exchange rates to INR (base currency)
+EXCHANGE_RATES_TO_INR = {
+    "INR": 1.0,
+    "USD": 83.50,
+    "AED": 22.73,
+    "GBP": 105.80,
+    "AUD": 54.50,
+    "EUR": 90.20,
+    "CAD": 61.50,
+}
+
+COUNTRY_CURRENCY = {
+    "IN": "INR",
+    "US": "USD",
+    "AE": "AED",
+    "UK": "GBP",
+    "AU": "AUD",
+    "DE": "EUR",
+    "CA": "CAD",
+}
+
+
+def convert_to_home_currency(amount: float, from_currency: str, to_currency: str) -> float:
+    """Convert amount from one currency to another via INR as base."""
+    if from_currency == to_currency:
+        return amount
+    inr_amount = amount * EXCHANGE_RATES_TO_INR.get(from_currency, 1.0)
+    result = inr_amount / EXCHANGE_RATES_TO_INR.get(to_currency, 1.0)
+    return round(result, 2)
+
+
 COUNTRY_RULES = {
     "IN": {
         "country_code": "IN",
@@ -98,11 +129,18 @@ def calculate_true_cost(price: float, country_code: str, home_country: str) -> d
 
     under_duty_free = price <= rules["duty_free_allowance_value"]
 
+    from_currency = COUNTRY_CURRENCY.get(country_code, "USD")
+    to_currency = COUNTRY_CURRENCY.get(home_country, "INR")
+    home_symbol = CURRENCY_SYMBOLS.get(home_country, ("INR", "₹"))[1]
+
+    carried_in_home = convert_to_home_currency(carried_price, from_currency, to_currency)
+
     return {
         "country": country_code,
         "local_price": price,
         "imported_price": round(imported_price, 2),
         "carried_price": round(carried_price, 2),
+        "carried_price_home": carried_in_home,
         "duty": round(duty, 2),
         "shipping": round(shipping, 2),
         "vat": round(vat, 2),
@@ -111,4 +149,6 @@ def calculate_true_cost(price: float, country_code: str, home_country: str) -> d
         "under_duty_free": under_duty_free,
         "currency": CURRENCY_SYMBOLS.get(country_code, ("USD", "$"))[0],
         "symbol": CURRENCY_SYMBOLS.get(country_code, ("USD", "$"))[1],
+        "home_currency": to_currency,
+        "home_symbol": home_symbol,
     }

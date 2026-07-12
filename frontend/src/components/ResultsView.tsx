@@ -7,20 +7,24 @@ import SplitFlapTicker from './SplitFlapTicker'
 import StampAnimation from './StampAnimation'
 import ConfettiBurst from './ConfettiBurst'
 import WorldMap from './WorldMap'
-import AnimatedCounter from './AnimatedCounter'
-import { Clock, TrendingDown, ShoppingCart, CreditCard, AlertTriangle, ExternalLink, Sparkles, Globe } from 'lucide-react'
+import { Clock, ShoppingCart, CreditCard, AlertTriangle, ExternalLink, Sparkles, Globe } from 'lucide-react'
 
 interface Scenario {
   country: string
   currency: string
   symbol: string
+  home_currency: string
+  home_symbol: string
   sellers: any[]
   total_sellers: number
   best_price: number | null
+  best_price_home: number | null
   best_seller: string
   best_url: string
   best_emi_price: number | null
+  best_emi_price_home: number | null
   best_emi_monthly: number | null
+  best_emi_monthly_home: number | null
   best_emi_seller: string
   best_emi_url: string
   country_best: string
@@ -38,14 +42,19 @@ interface ResultsViewProps {
   data: {
     product: string
     home_country: string
+    home_currency: string
+    home_symbol: string
     scenarios: Scenario[]
     best_country: string
     best_price: number
+    best_price_home: number
     best_seller: string
     best_url: string
     best_emi_country: string
     best_emi_price: number
+    best_emi_price_home: number
     best_emi_monthly: number
+    best_emi_monthly_home: number
     best_emi_seller: string
     best_emi_url: string
     timing: Record<string, TimingInfo>
@@ -75,8 +84,8 @@ const itemVariants = {
 export default function ResultsView({ data }: ResultsViewProps) {
   const [showConfetti, setShowConfetti] = useState(false)
   const {
-    product, home_country, scenarios, best_country, best_price, best_seller, best_url,
-    best_emi_country, best_emi_price, best_emi_monthly, best_emi_seller, best_emi_url, timing,
+    product, home_country, home_currency, home_symbol, scenarios, best_country, best_price, best_price_home, best_seller, best_url,
+    best_emi_country, best_emi_price, best_emi_price_home, best_emi_monthly, best_emi_monthly_home, best_emi_seller, best_emi_url, timing,
   } = data
   const bestScenario = scenarios.find(s => s.country === best_country)
   const bestEmiScenario = scenarios.find(s => s.country === best_emi_country)
@@ -111,6 +120,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
         <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">{product}</h2>
         <p className="text-paper/50 text-sm">
           Comparing prices across {scenarios.length} countries
+          <span className="ml-2 text-brass/60">| Showing all prices in {home_symbol}{home_currency}</span>
         </p>
       </motion.div>
 
@@ -139,7 +149,12 @@ export default function ResultsView({ data }: ResultsViewProps) {
                 <ShoppingCart size={18} className="text-teal" />
                 <p className="text-sm text-teal font-mono tracking-wider">BEST ONE-TIME PRICE</p>
               </div>
-              <SplitFlapTicker value={best_price} symbol={bestScenario?.symbol || '$'} className="justify-center mb-2" />
+              {/* Show home currency price as primary */}
+              <SplitFlapTicker value={best_price_home} symbol={home_symbol} className="justify-center mb-1" />
+              {/* Show original price as secondary */}
+              <p className="text-paper/30 text-xs font-mono mb-2">
+                {bestScenario?.symbol}{best_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {bestScenario?.currency}
+              </p>
               <p className="text-paper/60 text-sm">
                 from <span className="font-semibold text-paper">{best_seller}</span> in{' '}
                 <span className="font-semibold text-paper">{best_country}</span>
@@ -166,12 +181,13 @@ export default function ResultsView({ data }: ResultsViewProps) {
                 <CreditCard size={18} className="text-brass" />
                 <p className="text-sm text-brass font-mono tracking-wider">BEST EMI DEAL</p>
               </div>
-              <SplitFlapTicker value={best_emi_monthly} symbol={bestEmiScenario?.symbol || '$'} className="justify-center mb-2" />
+              <SplitFlapTicker value={best_emi_monthly_home} symbol={home_symbol} className="justify-center mb-1" />
               <p className="text-paper/50 text-sm">
                 per month for 12 months
               </p>
               <p className="text-paper/40 text-xs mt-1">
-                Total: {bestEmiScenario?.symbol}{best_emi_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                Total: {home_symbol}{best_emi_price_home?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                <span className="ml-1 text-paper/25">({bestEmiScenario?.symbol}{best_emi_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })} {bestEmiScenario?.currency})</span>
               </p>
               <p className="text-paper/60 mt-2 text-sm">
                 from <span className="font-semibold text-paper">{best_emi_seller}</span> in{' '}
@@ -235,6 +251,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
         <h3 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
           <Globe size={20} className="text-brass" />
           All Countries Compared
+          <span className="text-sm font-normal text-paper/40 ml-2">(sorted by {home_symbol} price)</span>
         </h3>
         <div className="grid gap-4">
           {scenarios.map((scenario, i) => (
@@ -248,13 +265,18 @@ export default function ResultsView({ data }: ResultsViewProps) {
                 country={scenario.country}
                 currency={scenario.currency}
                 symbol={scenario.symbol}
+                homeCurrency={scenario.home_currency}
+                homeSymbol={scenario.home_symbol}
                 totalSellers={scenario.total_sellers}
                 sellers={scenario.sellers}
                 bestPrice={scenario.best_price}
+                bestPriceHome={scenario.best_price_home}
                 bestSeller={scenario.best_seller}
                 bestUrl={scenario.best_url}
                 bestEmiPrice={scenario.best_emi_price}
+                bestEmiPriceHome={scenario.best_emi_price_home}
                 bestEmiMonthly={scenario.best_emi_monthly}
+                bestEmiMonthlyHome={scenario.best_emi_monthly_home}
                 bestEmiSeller={scenario.best_emi_seller}
                 bestEmiUrl={scenario.best_emi_url}
                 countryBest={scenario.country_best}
@@ -281,6 +303,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
           <AlertTriangle size={14} className="inline mr-2 text-brass/60" />
           Importing to {home_country} may incur customs duty. &quot;Carried&quot; prices assume the product is brought in
           personal baggage under the duty-free limit. EMI rates are estimated at 12% interest over 12 months.
+          All prices shown in {home_symbol}{home_currency} for easy comparison.
         </motion.div>
       )}
     </motion.div>
