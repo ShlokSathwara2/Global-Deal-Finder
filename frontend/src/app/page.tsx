@@ -171,8 +171,9 @@ export default function Home() {
       spotlightRef.current.style.top = `${relY}px`
       spotlightRef.current.style.opacity = '1'
 
-      // Dynamic glow based on movement speed
-      const speedFactor = Math.min(1, deltaTime / 50) // Faster movement = stronger glow
+      // Dynamic glow based on movement speed - calculate time since last move
+      const speedDeltaTime = Date.now() - lastMoveTime.current
+      const speedFactor = Math.min(1, speedDeltaTime / 50) // Faster movement = stronger glow
       spotlightRef.current.style.background = `radial-gradient(circle at center, rgba(255,255,255,${0.2 + speedFactor * 0.1}) 0%, rgba(255,255,255,${0.08 + speedFactor * 0.04}) 30%, transparent 70%)`
     }
 
@@ -185,9 +186,10 @@ export default function Home() {
 
     // Set eye tracking target with more natural, restrained movement
     // Reduced range for more subtle, human-like movement
-    const y = ((relY / rect.height) - 0.5) * 1.2 // Reduced range for more subtle movement
-    targetRot.current.y = x * 20 // Reduced sensitivity for natural feel
-    targetRot.current.x = -y * 12 // Reduced sensitivity for natural feel
+    const x = ((relX / rect.width) - 0.5) * 1.2
+    const y = ((relY / rect.height) - 0.5) * 1.2
+    targetRot.current.y = x * 20
+    targetRot.current.x = -y * 12
   }, [])
 
   const handleHeroMouseLeave = useCallback(() => {
@@ -300,7 +302,7 @@ export default function Home() {
       } else {
         doSearch(query)
       }
-    } else if (e.key === 'Escape') {
+    } else if (e.key === 'Esc') {
       setShowSuggestions(false)
     }
   }
@@ -438,7 +440,7 @@ export default function Home() {
                           <div className="flex-shrink-0">
                             <Search size={16} className="text-primary/40" />
                           </div>
-                          <div className="flex-1">{s.text}</span>
+                          <div className="flex-1">{s.text}</div>
                           <div className="flex-shrink-0">
                             <ChevronRight size={14} className="text-paper/20" />
                           </div>
@@ -571,7 +573,7 @@ export default function Home() {
             transition={{ delay: 0.6, duration: 0.8 }}
             className="text-center py-20"
           >
-            <div className="relative inline-block-start>
+            <div className="relative inline-block">
               <div className="absolute inset-0 bg-primary/15 blur-3xl rounded-full" />
               <div className="relative w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center">
                 <Globe size={24} className="text-primary/50" />
