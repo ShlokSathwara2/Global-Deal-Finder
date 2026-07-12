@@ -28,8 +28,16 @@ def _extract_keywords(product: str) -> list[str]:
 
 def _is_relevant(title: str, keywords: list[str]) -> bool:
     title_lower = title.lower()
+    if not keywords:
+        return True
     matched = sum(1 for kw in keywords if kw in title_lower)
-    return matched >= max(1, len(keywords) // 2)
+    ratio = matched / len(keywords)
+    if ratio < 0.75:
+        return False
+    last_keyword = keywords[-1]
+    if len(last_keyword) > 2 and last_keyword not in title_lower:
+        return False
+    return True
 
 
 def search_prices(product: str, country: str) -> list[dict]:
@@ -66,6 +74,8 @@ def search_prices(product: str, country: str) -> list[dict]:
         if price <= 0:
             continue
         if not _is_relevant(title, keywords):
+            continue
+        if price < 100:
             continue
         results.append({
             "product": product,
