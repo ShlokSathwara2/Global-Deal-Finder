@@ -34,7 +34,7 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestLoading, setSuggestLoading] = useState(false)
-  const [clarify, setClarify] = useState<{ needs_clarification: boolean; questions: ClarifyOption[]; clarified_product?: string } | null>(null)
+  const [clarify, setClarify] = useState<{ original_query: string; needs_clarification: boolean; questions: ClarifyOption[]; clarified_product?: string } | null>(null)
   const [clarifyLoading, setClarifyLoading] = useState(false)
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({})
   const [activeSuggestion, setActiveSuggestion] = useState(-1)
