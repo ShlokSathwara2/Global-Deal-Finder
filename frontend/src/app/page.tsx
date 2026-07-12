@@ -45,6 +45,10 @@ export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null)
   const spotlightRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
+  const splineRef = useRef<any>(null)
+  const targetRef = useRef({ x: 0, y: 0 })
+  const currentRef = useRef({ x: 0, y: 0 })
+  const rafRef = useRef<number | null>(null)
 
   const fetchSuggestions = useCallback(async (q: string) => {
     if (q.length < 2) {
@@ -80,12 +84,67 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Smooth animation loop — moves the robot head/face like a human
+  const tick = useCallback(() => {
+    const spline = splineRef.current
+    if (spline) {
+      // Lerp for smooth organic easing (slow follow = human feel)
+      currentRef.current.x += (targetRef.current.x - currentRef.current.x) * 0.06
+      currentRef.current.y += (targetRef.current.y - currentRef.current.y) * 0.06
+
+      const nx = currentRef.current.x  // normalized -1 to 1
+      const ny = currentRef.current.y
+
+      try {
+        // Head turns to face cursor — rotation like turning your neck
+        const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
+        if (head) {
+          head.rotation.y = nx * 30   // turn left/right
+          head.rotation.x = ny * -20  // tilt up/down
+          head.rotation.z = nx * -3   // slight tilt like a human
+        }
+
+        // Eyes follow more than head — like real eyes leading the gaze
+        const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye')
+        const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye')
+        const eye = spline.findObjectByName('Eye') || spline.findObjectByName('eye')
+        if (eyeL) { eyeL.rotation.y = nx * 40; eyeL.rotation.x = ny * -25 }
+        if (eyeR) { eyeR.rotation.y = nx * 40; eyeR.rotation.x = ny * -25 }
+        if (eye && !eyeL && !eyeR) { eye.rotation.y = nx * 40; eye.rotation.x = ny * -25 }
+
+        // Torso shifts slightly — like leaning toward what you're looking at
+        const torso = spline.findObjectByName('Torso') || spline.findObjectByName('torso') || spline.findObjectByName('Body') || spline.findObjectByName('body')
+        if (torso) {
+          torso.position.x += (nx * 2 - torso.position.x) * 0.03
+          torso.position.y += (ny * -1.5 - torso.position.y) * 0.03
+        }
+
+        // Arms shift subtly
+        const armL = spline.findObjectByName('ArmL') || spline.findObjectByName('arm_l') || spline.findObjectByName('LeftArm')
+        const armR = spline.findObjectByName('ArmR') || spline.findObjectByName('arm_r') || spline.findObjectByName('RightArm')
+        if (armL) { armL.rotation.z += (nx * 5 - armL.rotation.z) * 0.02 }
+        if (armR) { armR.rotation.z += (nx * -5 - armR.rotation.z) * 0.02 }
+      } catch {}
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+  }, [])
+
+  useEffect(() => {
+    rafRef.current = requestAnimationFrame(tick)
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+  }, [tick])
+
   const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = heroRef.current?.getBoundingClientRect()
     if (!rect) return
 
     const relX = e.clientX - rect.left
     const relY = e.clientY - rect.top
+
+    // Normalized cursor position: -1 (left/top) to 1 (right/bottom)
+    targetRef.current.x = ((relX / rect.width) - 0.5) * 2
+    targetRef.current.y = ((relY / rect.height) - 0.5) * 2
 
     // Move cursor-following spotlight
     if (spotlightRef.current) {
@@ -252,6 +311,7 @@ export default function Home() {
           <SplineScene
             scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
             className="w-full h-full"
+            onSplineLoad={(s: any) => { splineRef.current = s }}
           />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
