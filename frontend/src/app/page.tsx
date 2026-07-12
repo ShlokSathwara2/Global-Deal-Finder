@@ -42,7 +42,6 @@ export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const splineRef = useRef<any>(null)
   const heroRef = useRef<HTMLDivElement>(null)
   const spotlightRef = useRef<HTMLDivElement>(null)
   const cursorRef = useRef<HTMLDivElement>(null)
@@ -81,115 +80,26 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const handleSplineLoad = useCallback((spline: any) => {
-    splineRef.current = spline
-  }, [])
-
-  // Enhanced smooth eye tracking with more natural, human-like movement
-  const targetRot = useRef({ x: 0, y: 0 })
-  const currentRot = useRef({ x: 0, y: 0 })
-  const rafId = useRef<number | null>(null)
-  const lastMoveTime = useRef<number>(0)
-  const isMoving = useRef<boolean>(false)
-  const blinkTimer = useRef<NodeJS.Timeout | null>(null)
-
-  const animateEyes = useCallback(() => {
-    const spline = splineRef.current
-    if (!spline) {
-      rafId.current = requestAnimationFrame(animateEyes)
-      return
-    }
-
-    // Calculate time since last movement for more natural easing
-    const deltaTime = Date.now() - lastMoveTime.current
-    const movementFactor = Math.min(1, deltaTime / 100) // Dampens when not moving
-
-    // More organic, human-like movement with subtle variations
-    const baseEase = 0.06
-    const variation = Math.sin(Date.now() * 0.002) * 0.015 // Subtle breathing movement
-    const easeFactor = baseEase + variation + (0.04 * movementFactor)
-
-    currentRot.current.x += (targetRot.current.x - currentRot.current.x) * easeFactor
-    currentRot.current.y += (targetRot.current.y - currentRot.current.y) * easeFactor
-
-    try {
-      const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
-      const eyeL = spline.findObjectByName('EyeL') || spline.findObjectByName('eye_l') || spline.findObjectByName('LeftEye') || spline.findObjectByName('eyeL')
-      const eyeR = spline.findObjectByName('EyeR') || spline.findObjectByName('eye_r') || spline.findObjectByName('RightEye') || spline.findObjectByName('eyeR')
-      const eye = spline.findObjectByName('Eye') || spline.findObjectByName('eye') || spline.findObjectByName('Eyes')
-
-      const rotX = currentRot.current.x
-      const rotY = currentRot.current.y
-
-      // Add subtle micro-movements for lifelike quality (like tiny eye twitches)
-      const microMoveX = Math.sin(Date.now() * 0.007) * 0.3 + Math.sin(Date.now() * 0.013) * 0.1
-      const microMoveY = Math.sin(Date.now() * 0.005) * 0.2 + Math.sin(Date.now() * 0.011) * 0.1
-
-      if (head) {
-        // Head moves slightly less than eyes for natural proportion
-        head.rotation.x = (rotX * 0.5) + (microMoveX * 0.1)
-        head.rotation.y = (rotY * 0.5) + (microMoveY * 0.1)
-      }
-      if (eyeL) {
-        eyeL.rotation.x = rotX + microMoveX
-        eyeL.rotation.y = rotY + microMoveY
-      }
-      if (eyeR) {
-        eyeR.rotation.x = rotX + microMoveX
-        eyeR.rotation.y = rotY + microMoveY
-      }
-      if (eye && !eyeL && !eyeR) {
-        eye.rotation.x = rotX + microMoveX
-        eye.rotation.y = rotY + microMoveY
-      }
-    } catch {}
-
-    rafId.current = requestAnimationFrame(animateEyes)
-  }, [])
-
-  useEffect(() => {
-    rafId.current = requestAnimationFrame(animateEyes)
-    return () => {
-      if (rafId.current) cancelAnimationFrame(rafId.current)
-      if (blinkTimer.current) clearTimeout(blinkTimer.current)
-    }
-  }, [animateEyes])
-
   const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = heroRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    lastMoveTime.current = Date.now()
-    isMoving.current = true
-
     const relX = e.clientX - rect.left
     const relY = e.clientY - rect.top
 
-    // Enhanced cursor-following spotlight with dynamic glow
+    // Move cursor-following spotlight
     if (spotlightRef.current) {
       spotlightRef.current.style.left = `${relX}px`
       spotlightRef.current.style.top = `${relY}px`
       spotlightRef.current.style.opacity = '1'
-
-      // Dynamic glow based on movement speed - calculate time since last move
-      const speedDeltaTime = Date.now() - lastMoveTime.current
-      const speedFactor = Math.min(1, speedDeltaTime / 50) // Faster movement = stronger glow
-      spotlightRef.current.style.background = `radial-gradient(circle at center, rgba(255,255,255,${0.2 + speedFactor * 0.1}) 0%, rgba(255,255,255,${0.08 + speedFactor * 0.04}) 30%, transparent 70%)`
     }
 
-    // Enhanced custom cursor with subtle pulse
+    // Move custom cursor dot
     if (cursorRef.current) {
       cursorRef.current.style.left = `${relX}px`
       cursorRef.current.style.top = `${relY}px`
       cursorRef.current.style.opacity = '1'
     }
-
-    // Set eye tracking target with more natural, restrained movement
-    // Reduced range for more subtle, human-like movement
-    const x = ((relX / rect.width) - 0.5) * 1.2
-    const y = ((relY / rect.height) - 0.5) * 1.2
-    targetRot.current.y = x * 20
-    targetRot.current.x = -y * 12
   }, [])
 
   const handleHeroMouseLeave = useCallback(() => {
@@ -342,7 +252,6 @@ export default function Home() {
           <SplineScene
             scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
             className="w-full h-full"
-            onSplineLoad={handleSplineLoad}
           />
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
