@@ -162,6 +162,49 @@ async def clarify(request: Request):
     return {"original_query": text, **result}
 
 
+REFINE_SYSTEM_PROMPT = """You are a smart shopping assistant. The user searched for a product, answered clarifying questions, and now you need to combine their answers into a clean, searchable product name.
+
+Rules:
+- Return ONLY the product name, nothing else
+- Remove conversational text like "Yes, must be", "I want", "I need"
+- Keep brand, model, size, color, and key specs
+- Make it a clean search query suitable for Google Shopping
+- Examples:
+  - Input: "headphones" + answers: ["Over-ear", "Sony", "$200-500"] → "Sony Over-ear Headphones"
+  - Input: "iphone 17" + answers: ["256GB", "White"] → "iPhone 17 256GB White"
+  - Input: "laptop" + answers: ["MacBook", "Air", "M3"] → "MacBook Air M3"
+"""
+
+
+@app.post("/refine")
+async def refine(request: Request):
+    body = await request.json()
+    original = body.get("original_query", "")
+    answers = body.get("answers", [])
+
+    if not original or not answers:
+        raise HTTPException(status_code=400, detail="original_query and answers are required")
+
+    user_msg = f"Original search: {original}\n\nUser's answers:\n" + "\n".join(f"- {a}" for a in answers)
+
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": REFINE_SYSTEM_PROMPT},
+                {"role": "user", "content": user_msg},
+            ],
+            temperature=0,
+            max_tokens=100,
+        )
+        refined = response.choices[0].message.content.strip()
+    except Exception:
+        parts = [original] + [a for a in answers if a and a.lower() not in ("yes", "no", "sure", "ok")]
+        refined = " ".join(parts)
+
+    return {"original_query": original, "answers": answers, "refined_product": refined}
+
+
 @app.post("/parse-intent")
 async def parse_intent(request: Request):
     body = await request.json()

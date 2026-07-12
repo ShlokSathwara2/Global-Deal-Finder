@@ -133,12 +133,31 @@ export default function Home() {
 
     const allAnswered = clarify?.questions.every((_, i) => updated[i])
     if (allAnswered && clarify) {
-      const parts = Object.values(updated).filter(Boolean)
-      const refined = parts.join(' ')
-      setQuery(refined)
+      const answerList = Object.values(updated).filter(Boolean)
       setClarify(null)
       setSelectedAnswers({})
-      await runCompare(refined)
+      setLoading(true)
+      try {
+        const res = await fetch('https://global-deal-finder.onrender.com/refine', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ original_query: clarify.original_query, answers: answerList }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          const refined = data.refined_product || answerList.join(' ')
+          setQuery(refined)
+          await runCompare(refined)
+        } else {
+          const refined = answerList.join(' ')
+          setQuery(refined)
+          await runCompare(refined)
+        }
+      } catch {
+        const refined = answerList.join(' ')
+        setQuery(refined)
+        await runCompare(refined)
+      }
     }
   }
 
