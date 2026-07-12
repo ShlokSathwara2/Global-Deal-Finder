@@ -4,6 +4,9 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Global Deal Finder',
   description: 'Best Price + Best Card + Best Timing, Worldwide',
+  icons: {
+    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">🌍</text></svg>',
+  },
 }
 
 export default function RootLayout({
@@ -13,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-ink-navy text-paper">
+      <body className="min-h-screen bg-ink-navy text-paper antialiased">
         {children}
       </body>
     </html>

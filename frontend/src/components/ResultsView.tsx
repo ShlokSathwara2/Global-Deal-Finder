@@ -1,10 +1,14 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import CountryCard from './CountryCard'
 import SplitFlapTicker from './SplitFlapTicker'
 import StampAnimation from './StampAnimation'
-import { Clock, TrendingDown, ShoppingCart, CreditCard, AlertTriangle, ExternalLink } from 'lucide-react'
+import ConfettiBurst from './ConfettiBurst'
+import WorldMap from './WorldMap'
+import AnimatedCounter from './AnimatedCounter'
+import { Clock, TrendingDown, ShoppingCart, CreditCard, AlertTriangle, ExternalLink, Sparkles, Globe } from 'lucide-react'
 
 interface Scenario {
   country: string
@@ -48,7 +52,28 @@ interface ResultsViewProps {
   }
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2,
+    },
+  },
+}
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] },
+  },
+}
+
 export default function ResultsView({ data }: ResultsViewProps) {
+  const [showConfetti, setShowConfetti] = useState(false)
   const {
     product, home_country, scenarios, best_country, best_price, best_seller, best_url,
     best_emi_country, best_emi_price, best_emi_monthly, best_emi_seller, best_emi_url, timing,
@@ -56,100 +81,159 @@ export default function ResultsView({ data }: ResultsViewProps) {
   const bestScenario = scenarios.find(s => s.country === best_country)
   const bestEmiScenario = scenarios.find(s => s.country === best_emi_country)
 
+  useEffect(() => {
+    const timer = setTimeout(() => setShowConfetti(true), 800)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
-    <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
+    <motion.div
+      className="space-y-8 mt-12"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <ConfettiBurst trigger={showConfetti} />
+
+      {/* Product header */}
+      <motion.div variants={itemVariants} className="text-center">
+        <motion.div
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-mono mb-4"
+          style={{
+            background: 'rgba(47,111,98,0.1)',
+            border: '1px solid rgba(47,111,98,0.2)',
+            color: 'rgba(47,111,98,0.8)',
+          }}
+        >
+          <Sparkles size={12} />
+          Analysis Complete
+        </motion.div>
         <h2 className="font-display text-2xl md:text-3xl font-bold mb-2">{product}</h2>
-        <p className="text-paper/60">Comparing prices across {scenarios.length} countries</p>
+        <p className="text-paper/50 text-sm">
+          Comparing prices across {scenarios.length} countries
+        </p>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      {/* World Map */}
+      <motion.div variants={itemVariants}>
+        <WorldMap
+          bestCountry={best_country}
+          countries={scenarios.map(s => s.country)}
+        />
+      </motion.div>
+
+      {/* Best deals grid */}
+      <motion.div variants={itemVariants} className="grid md:grid-cols-2 gap-4">
         <StampAnimation>
           <a href={best_url || '#'} target="_blank" rel="noopener noreferrer"
-            className="block bg-ink-navy/80 border-2 border-teal rounded-xl p-6 text-center hover:scale-[1.02] transition">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <ShoppingCart size={18} className="text-teal" />
-              <p className="text-sm text-teal font-mono">BEST ONE-TIME PRICE</p>
+            className="block rounded-xl p-6 text-center hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden"
+            style={{
+              background: 'rgba(11,18,32,0.8)',
+              border: '2px solid rgba(47,111,98,0.3)',
+              boxShadow: '0 0 30px rgba(47,111,98,0.05)',
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-teal/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <ShoppingCart size={18} className="text-teal" />
+                <p className="text-sm text-teal font-mono tracking-wider">BEST ONE-TIME PRICE</p>
+              </div>
+              <SplitFlapTicker value={best_price} symbol={bestScenario?.symbol || '$'} className="justify-center mb-2" />
+              <p className="text-paper/60 text-sm">
+                from <span className="font-semibold text-paper">{best_seller}</span> in{' '}
+                <span className="font-semibold text-paper">{best_country}</span>
+              </p>
+              <p className="flex items-center justify-center gap-1 text-xs text-brass mt-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                Visit store <ExternalLink size={10} />
+              </p>
             </div>
-            <SplitFlapTicker value={best_price} symbol={bestScenario?.symbol || '$'} className="justify-center mb-2" />
-            <p className="text-paper/70">
-              from <span className="font-semibold text-paper">{best_seller}</span> in{' '}
-              <span className="font-semibold text-paper">{best_country}</span>
-            </p>
-            <p className="flex items-center justify-center gap-1 text-xs text-brass mt-3">
-              Visit store <ExternalLink size={10} />
-            </p>
           </a>
         </StampAnimation>
 
         <StampAnimation>
           <a href={best_emi_url || '#'} target="_blank" rel="noopener noreferrer"
-            className="block bg-ink-navy/80 border-2 border-brass rounded-xl p-6 text-center hover:scale-[1.02] transition">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <CreditCard size={18} className="text-brass" />
-              <p className="text-sm text-brass font-mono">BEST EMI DEAL</p>
+            className="block rounded-xl p-6 text-center hover:scale-[1.02] transition-all duration-300 group relative overflow-hidden"
+            style={{
+              background: 'rgba(11,18,32,0.8)',
+              border: '2px solid rgba(138,109,30,0.3)',
+              boxShadow: '0 0 30px rgba(138,109,30,0.05)',
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-brass/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <CreditCard size={18} className="text-brass" />
+                <p className="text-sm text-brass font-mono tracking-wider">BEST EMI DEAL</p>
+              </div>
+              <SplitFlapTicker value={best_emi_monthly} symbol={bestEmiScenario?.symbol || '$'} className="justify-center mb-2" />
+              <p className="text-paper/50 text-sm">
+                per month for 12 months
+              </p>
+              <p className="text-paper/40 text-xs mt-1">
+                Total: {bestEmiScenario?.symbol}{best_emi_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-paper/60 mt-2 text-sm">
+                from <span className="font-semibold text-paper">{best_emi_seller}</span> in{' '}
+                <span className="font-semibold text-paper">{best_emi_country}</span>
+              </p>
+              <p className="flex items-center justify-center gap-1 text-xs text-brass mt-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                Visit store <ExternalLink size={10} />
+              </p>
             </div>
-            <SplitFlapTicker value={best_emi_monthly} symbol={bestEmiScenario?.symbol || '$'} className="justify-center mb-2" />
-            <p className="text-paper/70 text-sm">
-              per month for 12 months
-            </p>
-            <p className="text-paper/50 text-xs mt-1">
-              Total: {bestEmiScenario?.symbol}{best_emi_price?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-            </p>
-            <p className="text-paper/70 mt-2">
-              from <span className="font-semibold text-paper">{best_emi_seller}</span> in{' '}
-              <span className="font-semibold text-paper">{best_emi_country}</span>
-            </p>
-            <p className="flex items-center justify-center gap-1 text-xs text-brass mt-3">
-              Visit store <ExternalLink size={10} />
-            </p>
           </a>
         </StampAnimation>
-      </div>
+      </motion.div>
 
+      {/* Timing Insights */}
       {Object.keys(timing).length > 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-ink-navy/50 border border-brass/20 rounded-xl p-4"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Clock size={18} className="text-brass" />
-            <h3 className="font-display font-semibold">Timing Insights</h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {Object.entries(timing).slice(0, 4).map(([country, info]) => (
-              <div key={country} className={`rounded-lg p-3 text-sm ${
-                info.recommendation === 'wait' ? 'bg-ochre/20 border border-ochre/30' : 'bg-teal/10 border border-teal/20'
-              }`}>
-                <p className="font-mono font-semibold">{country}</p>
-                {info.next_event ? (
-                  <>
-                    <p className="text-xs text-paper/60 mt-1">{info.next_event}</p>
-                    <p className="text-xs text-paper/50">{info.days_away}d away · {info.expected_discount} off</p>
-                  </>
-                ) : (
-                  <p className="text-xs text-paper/60 mt-1">No upcoming sales</p>
-                )}
-                <p className={`text-xs font-semibold mt-1 ${
-                  info.recommendation === 'wait' ? 'text-ochre' : 'text-teal'
-                }`}>
-                  {info.recommendation === 'wait' ? '⏳ Wait' : '✓ Buy now'}
-                </p>
-              </div>
-            ))}
+        <motion.div variants={itemVariants}>
+          <div className="rounded-xl p-5" style={{
+            background: 'rgba(11,18,32,0.6)',
+            border: '1px solid rgba(138,109,30,0.12)',
+          }}>
+            <div className="flex items-center gap-2 mb-4">
+              <Clock size={18} className="text-brass" />
+              <h3 className="font-display font-semibold text-lg">Timing Insights</h3>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Object.entries(timing).slice(0, 4).map(([country, info], i) => (
+                <motion.div
+                  key={country}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 + i * 0.1 }}
+                  className={`rounded-lg p-3 text-sm ${
+                    info.recommendation === 'wait'
+                      ? 'bg-ochre/10 border border-ochre/20'
+                      : 'bg-teal/5 border border-teal/15'
+                  }`}
+                >
+                  <p className="font-mono font-semibold text-xs">{country}</p>
+                  {info.next_event ? (
+                    <>
+                      <p className="text-xs text-paper/50 mt-1">{info.next_event}</p>
+                      <p className="text-xs text-paper/40">{info.days_away}d away · {info.expected_discount} off</p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-paper/50 mt-1">No upcoming sales</p>
+                  )}
+                  <p className={`text-xs font-semibold mt-1 ${
+                    info.recommendation === 'wait' ? 'text-ochre' : 'text-teal'
+                  }`}>
+                    {info.recommendation === 'wait' ? '\u23F3 Wait' : '\u2713 Buy now'}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </motion.div>
       )}
 
-      <div>
+      {/* All Countries */}
+      <motion.div variants={itemVariants}>
         <h3 className="font-display text-xl font-semibold mb-4 flex items-center gap-2">
-          <TrendingDown size={20} className="text-brass" />
+          <Globe size={20} className="text-brass" />
           All Countries Compared
         </h3>
         <div className="grid gap-4">
@@ -158,7 +242,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
               key={scenario.country}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ delay: 0.5 + i * 0.08 }}
             >
               <CountryCard
                 country={scenario.country}
@@ -182,15 +266,23 @@ export default function ResultsView({ data }: ResultsViewProps) {
             </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
+      {/* Disclaimer */}
       {home_country && (
-        <div className="bg-ink-navy/50 border border-brass/20 rounded-xl p-4 text-sm text-paper/60">
-          <AlertTriangle size={16} className="inline mr-2 text-brass" />
-          Importing to {home_country} may incur customs duty. "Carried" prices assume the product is brought in
+        <motion.div
+          variants={itemVariants}
+          className="rounded-xl p-4 text-sm text-paper/40"
+          style={{
+            background: 'rgba(11,18,32,0.4)',
+            border: '1px solid rgba(138,109,30,0.08)',
+          }}
+        >
+          <AlertTriangle size={14} className="inline mr-2 text-brass/60" />
+          Importing to {home_country} may incur customs duty. &quot;Carried&quot; prices assume the product is brought in
           personal baggage under the duty-free limit. EMI rates are estimated at 12% interest over 12 months.
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }
