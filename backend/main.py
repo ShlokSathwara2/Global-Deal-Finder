@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from groq import Groq
 from supabase import create_client
 from serpapi import GoogleSearch
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from services.price_search import search_prices, store_prices
 from services.true_cost import calculate_true_cost, get_country_rules, CURRENCY_SYMBOLS
 from services.card_offers import search_card_offers, normalize_offer, store_offers
@@ -16,6 +18,9 @@ from services.comparison import get_full_comparison, ComparisonResponse
 load_dotenv()
 
 app = FastAPI(title="Global Deal Finder API", version="0.1.0")
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 app.add_middleware(
     CORSMiddleware,
@@ -447,3 +452,25 @@ async def roadmap(request: Request):
         "best_price": comparison["best_price"],
         "best_seller": comparison["best_seller"],
     }
+
+
+@app.post("/feedback")
+async def feedback(request: Request):
+    body = await request.json()
+    user = body.get("user", "")
+    product = body.get("product", "")
+    issue_description = body.get("issue_description", "")
+
+    if not user or not product or not issue_description:
+        raise HTTPException(status_code=400, detail="user, product, and issue_description are required")
+
+    try:
+        supabase.table("feedback").insert({
+            "user": user,
+            "product": product,
+            "issue_description": issue_description,
+        }).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to store feedback: {str(e)}")
+
+    return {"status": "ok", "message": "Feedback recorded"}

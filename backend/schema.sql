@@ -102,3 +102,15 @@ INSERT INTO sale_calendar (country_code, event_name, date_range, category, histo
 
 -- Enable Row Level Security (optional, recommended)
 ALTER TABLE sale_calendar ENABLE ROW LEVEL SECURITY;
+
+-- Create feedback table
+CREATE TABLE feedback (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    "user" TEXT NOT NULL,
+    product TEXT NOT NULL,
+    issue_description TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security (optional, recommended)
+ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;

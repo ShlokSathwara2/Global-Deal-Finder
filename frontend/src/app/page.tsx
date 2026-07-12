@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Globe, Loader2, MapPin, Sparkles, ChevronRight, X } from 'lucide-react'
 import ResultsView from '@/components/ResultsView'
+import { SplineScene } from '@/components/ui/splite'
+import { Spotlight } from '@/components/ui/spotlight'
 
 const COUNTRIES = [
   { code: 'IN', name: 'India', flag: '\u{1F1EE}\u{1F1F3}' },
@@ -184,22 +186,37 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
+      {/* Hero with 3D Spline background */}
+      <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black/[0.96]">
+        <Spotlight
+          className="-top-40 left-0 md:left-60 md:-top-20"
+          fill="white"
+        />
+        <div className="absolute inset-0 z-0">
+          <SplineScene
+            scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+            className="w-full h-full"
+          />
+        </div>
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Globe size={32} className="text-brass" />
+              <h1 className="font-display text-3xl md:text-5xl font-bold drop-shadow-lg">
+                Global Deal Finder
+              </h1>
+            </div>
+            <p className="text-paper/80 text-lg drop-shadow-md max-w-xl mx-auto">
+              Best Price + Best Card + Best Timing, Worldwide
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
       <div className="max-w-5xl mx-auto px-4 py-8 md:py-16">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 md:mb-12"
-        >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Globe size={32} className="text-brass" />
-            <h1 className="font-display text-3xl md:text-5xl font-bold">
-              Global Deal Finder
-            </h1>
-          </div>
-          <p className="text-paper/60 text-lg">
-            Best Price + Best Card + Best Timing, Worldwide
-          </p>
-        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}

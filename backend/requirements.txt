@@ -6,3 +6,4 @@ pydantic
 supabase
 google-search-results
 upstash-redis
+slowapi
