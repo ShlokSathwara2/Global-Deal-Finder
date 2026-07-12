@@ -52,7 +52,7 @@ def search_prices(product: str, country: str) -> list[dict]:
             "seller": item.get("source", "Unknown"),
             "price": item.get("extracted_price", 0),
             "currency": item.get("currency", "USD"),
-            "url": item.get("link", ""),
+            "url": item.get("product_link") or item.get("link") or "",
             "title": item.get("title", ""),
             "rating": item.get("rating"),
             "reviews": item.get("reviews"),
