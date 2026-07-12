@@ -316,28 +316,88 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
 
       {/* Globe body */}
       <div className="absolute inset-0 flex items-center justify-center">
+        {/* Outer atmosphere glow */}
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: '82%',
+            height: '82%',
+            background: `radial-gradient(circle, ${activeCountry.color}08 0%, transparent 70%)`,
+            filter: 'blur(20px)',
+          }}
+          animate={{
+            scale: [1, 1.05, 1],
+            opacity: [0.5, 0.8, 0.5],
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+
         {/* Main sphere */}
         <div
           className="relative w-[240px] h-[240px] md:w-[300px] md:h-[300px] rounded-full overflow-hidden"
           style={{
-            background: 'radial-gradient(circle at 35% 35%, rgba(47,111,98,0.15) 0%, rgba(11,18,32,0.95) 50%, rgba(11,18,32,1) 100%)',
+            background: 'radial-gradient(circle at 35% 35%, rgba(47,111,98,0.12) 0%, rgba(11,18,32,0.98) 40%, rgba(11,18,32,1) 100%)',
             boxShadow: `
-              inset -30px -30px 60px rgba(0,0,0,0.5),
-              inset 10px 10px 30px rgba(138,109,30,0.05),
-              0 0 60px rgba(138,109,30,0.08),
-              0 0 120px rgba(47,111,98,0.05)
+              inset -40px -40px 80px rgba(0,0,0,0.6),
+              inset 15px 15px 40px rgba(138,109,30,0.04),
+              0 0 80px rgba(138,109,30,0.06),
+              0 0 160px rgba(47,111,98,0.04),
+              0 0 1px 1px rgba(138,109,30,0.1)
             `,
           }}
         >
-          {/* Atmosphere rim light */}
+          {/* ---- LAYER 1: Deep atmosphere ---- */}
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background: 'radial-gradient(circle at 30% 30%, rgba(47,111,98,0.1) 0%, transparent 40%)',
+              background: `
+                radial-gradient(ellipse at 25% 25%, rgba(47,111,98,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 75% 75%, rgba(138,109,30,0.06) 0%, transparent 50%)
+              `,
             }}
           />
 
-          {/* Grid lines (longitude) */}
+          {/* ---- LAYER 2: Aurora / Nebula effect ---- */}
+          <motion.div
+            className="absolute inset-0 rounded-full overflow-hidden"
+            animate={{ rotate: [0, 360] }}
+            transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+          >
+            <motion.div
+              className="absolute"
+              style={{
+                width: '120%',
+                height: '40%',
+                top: '20%',
+                left: '-10%',
+                background: `linear-gradient(90deg, transparent, ${activeCountry.color}08, rgba(47,111,98,0.06), transparent)`,
+                filter: 'blur(15px)',
+              }}
+              animate={{
+                x: ['-20%', '20%', '-20%'],
+                opacity: [0.3, 0.6, 0.3],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute"
+              style={{
+                width: '40%',
+                height: '120%',
+                top: '-10%',
+                left: '30%',
+                background: `linear-gradient(180deg, transparent, rgba(138,109,30,0.05), rgba(47,111,98,0.04), transparent)`,
+                filter: 'blur(20px)',
+              }}
+              animate={{
+                y: ['-10%', '10%', '-10%'],
+                opacity: [0.2, 0.5, 0.2],
+              }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            />
+          </motion.div>
+
+          {/* ---- LAYER 3: Grid lines (longitude) with pulse ---- */}
           <div className="absolute inset-0 overflow-hidden rounded-full">
             <motion.div
               className="absolute inset-0"
@@ -345,36 +405,50 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
               transition={{ duration: 1.2, ease: [0.4, 0, 0.2, 1] }}
             >
               {[...Array(12)].map((_, i) => (
-                <div
+                <motion.div
                   key={`lon-${i}`}
                   className="absolute top-0 bottom-0"
                   style={{
                     left: `${50 + Math.cos((i * 30) * Math.PI / 180) * 50}%`,
                     width: '1px',
-                    background: 'linear-gradient(to bottom, transparent, rgba(138,109,30,0.12) 30%, rgba(138,109,30,0.12) 70%, transparent)',
                     transform: `perspective(300px) rotateY(${i * 15}deg)`,
                   }}
+                  animate={{
+                    background: [
+                      'linear-gradient(to bottom, transparent, rgba(138,109,30,0.06) 30%, rgba(138,109,30,0.06) 70%, transparent)',
+                      'linear-gradient(to bottom, transparent, rgba(138,109,30,0.14) 30%, rgba(138,109,30,0.14) 70%, transparent)',
+                      'linear-gradient(to bottom, transparent, rgba(138,109,30,0.06) 30%, rgba(138,109,30,0.06) 70%, transparent)',
+                    ],
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, delay: i * 0.2 }}
                 />
               ))}
             </motion.div>
           </div>
 
-          {/* Grid lines (latitude) */}
+          {/* ---- LAYER 4: Grid lines (latitude) with pulse ---- */}
           <div className="absolute inset-0 overflow-hidden rounded-full">
             {[...Array(8)].map((_, i) => (
-              <div
+              <motion.div
                 key={`lat-${i}`}
                 className="absolute left-0 right-0"
                 style={{
                   top: `${15 + i * 10}%`,
                   height: '1px',
-                  background: 'linear-gradient(to right, transparent, rgba(47,111,98,0.08) 30%, rgba(47,111,98,0.08) 70%, transparent)',
                 }}
+                animate={{
+                  background: [
+                    'linear-gradient(to right, transparent, rgba(47,111,98,0.04) 30%, rgba(47,111,98,0.04) 70%, transparent)',
+                    'linear-gradient(to right, transparent, rgba(47,111,98,0.1) 30%, rgba(47,111,98,0.1) 70%, transparent)',
+                    'linear-gradient(to right, transparent, rgba(47,111,98,0.04) 30%, rgba(47,111,98,0.04) 70%, transparent)',
+                  ],
+                }}
+                transition={{ duration: 4, repeat: Infinity, delay: i * 0.3 }}
               />
             ))}
           </div>
 
-          {/* Continents (simplified shapes) */}
+          {/* ---- LAYER 5: Continents with active glow ---- */}
           <div className="absolute inset-0 overflow-hidden rounded-full">
             <motion.div
               className="absolute inset-0"
@@ -383,36 +457,111 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
             >
               {/* North America */}
               <div className="absolute" style={{ left: '12%', top: '25%', width: '18%', height: '22%' }}>
-                <div className="w-full h-full rounded-[40%_60%_50%_40%] bg-brass/8" />
+                <div className="w-full h-full rounded-[40%_60%_50%_40%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.08), rgba(138,109,30,0.03))',
+                  boxShadow: 'inset 0 0 10px rgba(138,109,30,0.05)',
+                }} />
               </div>
               {/* South America */}
               <div className="absolute" style={{ left: '22%', top: '55%', width: '10%', height: '20%' }}>
-                <div className="w-full h-full rounded-[50%_40%_60%_40%] bg-brass/6" />
+                <div className="w-full h-full rounded-[50%_40%_60%_40%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.06), rgba(138,109,30,0.02))',
+                }} />
               </div>
               {/* Europe */}
               <div className="absolute" style={{ left: '45%', top: '20%', width: '12%', height: '15%' }}>
-                <div className="w-full h-full rounded-[40%_50%_40%_60%] bg-brass/8" />
+                <div className="w-full h-full rounded-[40%_50%_40%_60%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.08), rgba(138,109,30,0.03))',
+                  boxShadow: 'inset 0 0 8px rgba(138,109,30,0.04)',
+                }} />
               </div>
               {/* Africa */}
               <div className="absolute" style={{ left: '48%', top: '40%', width: '14%', height: '25%' }}>
-                <div className="w-full h-full rounded-[50%_40%_45%_55%] bg-brass/6" />
+                <div className="w-full h-full rounded-[50%_40%_45%_55%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.06), rgba(138,109,30,0.02))',
+                }} />
               </div>
               {/* Asia */}
               <div className="absolute" style={{ left: '60%', top: '22%', width: '22%', height: '25%' }}>
-                <div className="w-full h-full rounded-[45%_55%_50%_40%] bg-brass/8" />
+                <div className="w-full h-full rounded-[45%_55%_50%_40%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.08), rgba(138,109,30,0.03))',
+                  boxShadow: 'inset 0 0 12px rgba(138,109,30,0.05)',
+                }} />
               </div>
-              {/* India (highlighted) */}
+              {/* India */}
               <div className="absolute" style={{ left: '66%', top: '38%', width: '6%', height: '10%' }}>
-                <div className="w-full h-full rounded-[40%_50%_60%_40%] bg-brass/12" />
+                <div className="w-full h-full rounded-[40%_50%_60%_40%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.12), rgba(138,109,30,0.06))',
+                  boxShadow: 'inset 0 0 6px rgba(138,109,30,0.08)',
+                }} />
               </div>
               {/* Australia */}
               <div className="absolute" style={{ left: '76%', top: '60%', width: '12%', height: '10%' }}>
-                <div className="w-full h-full rounded-[50%_40%_45%_55%] bg-brass/6" />
+                <div className="w-full h-full rounded-[50%_40%_45%_55%]" style={{
+                  background: 'linear-gradient(135deg, rgba(138,109,30,0.06), rgba(138,109,30,0.02))',
+                }} />
               </div>
             </motion.div>
           </div>
 
-          {/* Country markers */}
+          {/* ---- LAYER 6: Floating cloud particles ---- */}
+          <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
+            {[...Array(8)].map((_, i) => (
+              <motion.div
+                key={`cloud-${i}`}
+                className="absolute rounded-full"
+                style={{
+                  width: `${20 + i * 8}px`,
+                  height: `${8 + i * 3}px`,
+                  background: `radial-gradient(ellipse, rgba(138,109,30,${0.02 + i * 0.005}) 0%, transparent 70%)`,
+                  filter: 'blur(3px)',
+                  top: `${20 + (i * 11) % 60}%`,
+                  left: `${-10 + (i * 17) % 100}%`,
+                }}
+                animate={{
+                  x: [0, 30 + i * 5, 0],
+                  y: [0, -5 + i * 2, 0],
+                  opacity: [0.2, 0.5, 0.2],
+                }}
+                transition={{
+                  duration: 8 + i * 2,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                  delay: i * 1.5,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* ---- LAYER 7: Data stream particles ---- */}
+          <div className="absolute inset-0 overflow-hidden rounded-full pointer-events-none">
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={`stream-${i}`}
+                className="absolute"
+                style={{
+                  width: '2px',
+                  height: '15px',
+                  background: `linear-gradient(to bottom, ${activeCountry.color}40, transparent)`,
+                  borderRadius: '2px',
+                  left: `${20 + i * 15}%`,
+                  top: '-5%',
+                }}
+                animate={{
+                  y: ['0%', '400%'],
+                  opacity: [0, 0.8, 0],
+                }}
+                transition={{
+                  duration: 3 + i * 0.5,
+                  repeat: Infinity,
+                  ease: 'linear',
+                  delay: i * 0.8,
+                }}
+              />
+            ))}
+          </div>
+
+          {/* ---- LAYER 8: Country markers ---- */}
           <div className="absolute inset-0 overflow-hidden rounded-full">
             {COUNTRIES.map((country, i) => {
               const pos = MARKER_POSITIONS[country.code]
@@ -420,7 +569,6 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
               const x = 50 + Math.cos((pos.angle - rotation) * Math.PI / 180) * 40
               const y = 50 + (pos.ring - 1) * 15
 
-              // Only show if on the "front" of the globe
               const normalizedAngle = ((pos.angle - rotation) % 360 + 360) % 360
               const isVisible = normalizedAngle > 90 && normalizedAngle < 270
 
@@ -437,17 +585,22 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
                     transition: 'opacity 0.3s ease',
                   }}
                 >
-                  {/* Pulse ring */}
+                  {/* Expanding pulse rings */}
                   {isActive && (
-                    <motion.div
-                      className="absolute -inset-3 rounded-full"
-                      style={{
-                        border: `1px solid ${country.color}40`,
-                        boxShadow: `0 0 20px ${country.color}20`,
-                      }}
-                      animate={{ scale: [1, 2], opacity: [0.6, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'easeOut' }}
-                    />
+                    <>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ border: `1px solid ${country.color}30` }}
+                        animate={{ scale: [1, 2.5], opacity: [0.5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeOut' }}
+                      />
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ border: `1px solid ${country.color}20` }}
+                        animate={{ scale: [1, 2], opacity: [0.3, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'easeOut', delay: 0.5 }}
+                      />
+                    </>
                   )}
 
                   {/* Marker dot */}
@@ -456,32 +609,76 @@ export default function GlobeCinematic({ onEnter }: GlobeCinematicProps) {
                     style={{
                       background: isActive
                         ? `radial-gradient(circle, ${country.color}, ${country.color}80)`
-                        : 'rgba(138,109,30,0.3)',
+                        : 'rgba(138,109,30,0.25)',
                       boxShadow: isActive
-                        ? `0 0 12px ${country.color}60, 0 0 24px ${country.color}30`
+                        ? `0 0 14px ${country.color}70, 0 0 28px ${country.color}30, 0 0 3px ${country.color}`
                         : 'none',
                     }}
-                    animate={isActive ? { scale: [1, 1.3, 1] } : {}}
-                    transition={{ duration: 0.8, repeat: Infinity }}
+                    animate={isActive ? { scale: [1, 1.4, 1] } : {}}
+                    transition={{ duration: 1, repeat: Infinity }}
                   >
-                    {/* Inner glow */}
                     <div
                       className="absolute inset-[3px] rounded-full"
                       style={{
-                        background: isActive ? 'rgba(255,255,255,0.6)' : 'rgba(138,109,30,0.2)',
+                        background: isActive ? 'rgba(255,255,255,0.7)' : 'rgba(138,109,30,0.15)',
                       }}
                     />
                   </motion.div>
+
+                  {/* Vertical beam when active */}
+                  {isActive && (
+                    <motion.div
+                      className="absolute left-1/2 -translate-x-1/2 bottom-full"
+                      style={{
+                        width: '1px',
+                        height: '20px',
+                        background: `linear-gradient(to top, ${country.color}50, transparent)`,
+                      }}
+                      initial={{ scaleY: 0, opacity: 0 }}
+                      animate={{ scaleY: 1, opacity: 1 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
+                    />
+                  )}
                 </div>
               )
             })}
           </div>
 
-          {/* Atmosphere highlight */}
+          {/* ---- LAYER 9: Glass reflection ---- */}
           <div
             className="absolute inset-0 rounded-full pointer-events-none"
             style={{
-              background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%)',
+              background: `
+                linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 40%),
+                linear-gradient(315deg, rgba(255,255,255,0.01) 0%, transparent 30%)
+              `,
+            }}
+          />
+
+          {/* ---- LAYER 10: Edge shadow for depth ---- */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              boxShadow: 'inset 0 0 60px rgba(0,0,0,0.4), inset 0 0 120px rgba(0,0,0,0.2)',
+            }}
+          />
+
+          {/* ---- LAYER 11: Noise texture ---- */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              opacity: 0.03,
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+              backgroundSize: '64px 64px',
+              mixBlendMode: 'overlay',
+            }}
+          />
+
+          {/* ---- LAYER 12: Atmosphere rim (outer edge glow) ---- */}
+          <div
+            className="absolute inset-0 rounded-full pointer-events-none"
+            style={{
+              background: `radial-gradient(circle at 50% 50%, transparent 60%, ${activeCountry.color}06 80%, transparent 100%)`,
             }}
           />
         </div>
