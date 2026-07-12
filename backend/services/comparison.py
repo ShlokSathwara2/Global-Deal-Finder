@@ -124,7 +124,7 @@ def get_full_comparison(product: str, home_country: str = "IN") -> dict:
                 "url": r.get("url", ""),
                 "title": r.get("title", ""),
                 "rating": r.get("rating"),
-                "reviews": r.get("reviews"),
+                "reviews": int(r["reviews"]) if r.get("reviews") else None,
                 "local_price": cost["local_price"],
                 "imported_price": cost["imported_price"],
                 "carried_price": carried,
