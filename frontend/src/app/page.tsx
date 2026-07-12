@@ -85,10 +85,13 @@ export default function Home() {
     splineRef.current = spline
   }, [])
 
-  // Smooth eye tracking with lerp
+  // Enhanced smooth eye tracking with more natural, human-like movement
   const targetRot = useRef({ x: 0, y: 0 })
   const currentRot = useRef({ x: 0, y: 0 })
   const rafId = useRef<number | null>(null)
+  const lastMoveTime = useRef<number>(0)
+  const isMoving = useRef<boolean>(false)
+  const blinkTimer = useRef<NodeJS.Timeout | null>(null)
 
   const animateEyes = useCallback(() => {
     const spline = splineRef.current
@@ -97,9 +100,17 @@ export default function Home() {
       return
     }
 
-    // Lerp towards target for smooth organic movement
-    currentRot.current.x += (targetRot.current.x - currentRot.current.x) * 0.08
-    currentRot.current.y += (targetRot.current.y - currentRot.current.y) * 0.08
+    // Calculate time since last movement for more natural easing
+    const deltaTime = Date.now() - lastMoveTime.current
+    const movementFactor = Math.min(1, deltaTime / 100) // Dampens when not moving
+
+    // More organic, human-like movement with subtle variations
+    const baseEase = 0.06
+    const variation = Math.sin(Date.now() * 0.002) * 0.015 // Subtle breathing movement
+    const easeFactor = baseEase + variation + (0.04 * movementFactor)
+
+    currentRot.current.x += (targetRot.current.x - currentRot.current.x) * easeFactor
+    currentRot.current.y += (targetRot.current.y - currentRot.current.y) * easeFactor
 
     try {
       const head = spline.findObjectByName('Head') || spline.findObjectByName('head')
@@ -110,10 +121,27 @@ export default function Home() {
       const rotX = currentRot.current.x
       const rotY = currentRot.current.y
 
-      if (head) { head.rotation.x = rotX * 0.6; head.rotation.y = rotY * 0.6 }
-      if (eyeL) { eyeL.rotation.x = rotX; eyeL.rotation.y = rotY }
-      if (eyeR) { eyeR.rotation.x = rotX; eyeR.rotation.y = rotY }
-      if (eye && !eyeL && !eyeR) { eye.rotation.x = rotX; eye.rotation.y = rotY }
+      // Add subtle micro-movements for lifelike quality (like tiny eye twitches)
+      const microMoveX = Math.sin(Date.now() * 0.007) * 0.3 + Math.sin(Date.now() * 0.013) * 0.1
+      const microMoveY = Math.sin(Date.now() * 0.005) * 0.2 + Math.sin(Date.now() * 0.011) * 0.1
+
+      if (head) {
+        // Head moves slightly less than eyes for natural proportion
+        head.rotation.x = (rotX * 0.5) + (microMoveX * 0.1)
+        head.rotation.y = (rotY * 0.5) + (microMoveY * 0.1)
+      }
+      if (eyeL) {
+        eyeL.rotation.x = rotX + microMoveX
+        eyeL.rotation.y = rotY + microMoveY
+      }
+      if (eyeR) {
+        eyeR.rotation.x = rotX + microMoveX
+        eyeR.rotation.y = rotY + microMoveY
+      }
+      if (eye && !eyeL && !eyeR) {
+        eye.rotation.x = rotX + microMoveX
+        eye.rotation.y = rotY + microMoveY
+      }
     } catch {}
 
     rafId.current = requestAnimationFrame(animateEyes)
@@ -121,35 +149,45 @@ export default function Home() {
 
   useEffect(() => {
     rafId.current = requestAnimationFrame(animateEyes)
-    return () => { if (rafId.current) cancelAnimationFrame(rafId.current) }
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current)
+      if (blinkTimer.current) clearTimeout(blinkTimer.current)
+    }
   }, [animateEyes])
 
   const handleHeroMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = heroRef.current?.getBoundingClientRect()
     if (!rect) return
 
+    lastMoveTime.current = Date.now()
+    isMoving.current = true
+
     const relX = e.clientX - rect.left
     const relY = e.clientY - rect.top
 
-    // Move cursor-following spotlight
+    // Enhanced cursor-following spotlight with dynamic glow
     if (spotlightRef.current) {
       spotlightRef.current.style.left = `${relX}px`
       spotlightRef.current.style.top = `${relY}px`
       spotlightRef.current.style.opacity = '1'
+
+      // Dynamic glow based on movement speed
+      const speedFactor = Math.min(1, deltaTime / 50) // Faster movement = stronger glow
+      spotlightRef.current.style.background = `radial-gradient(circle at center, rgba(255,255,255,${0.2 + speedFactor * 0.1}) 0%, rgba(255,255,255,${0.08 + speedFactor * 0.04}) 30%, transparent 70%)`
     }
 
-    // Move custom cursor dot
+    // Enhanced custom cursor with subtle pulse
     if (cursorRef.current) {
       cursorRef.current.style.left = `${relX}px`
       cursorRef.current.style.top = `${relY}px`
       cursorRef.current.style.opacity = '1'
     }
 
-    // Set eye tracking target (robot looks toward cursor)
-    const x = ((relX / rect.width) - 0.5) * 2
-    const y = ((relY / rect.height) - 0.5) * 2
-    targetRot.current.y = x * 30
-    targetRot.current.x = -y * 20
+    // Set eye tracking target with more natural, restrained movement
+    // Reduced range for more subtle, human-like movement
+    const y = ((relY / rect.height) - 0.5) * 1.2 // Reduced range for more subtle movement
+    targetRot.current.y = x * 20 // Reduced sensitivity for natural feel
+    targetRot.current.x = -y * 12 // Reduced sensitivity for natural feel
   }, [])
 
   const handleHeroMouseLeave = useCallback(() => {
@@ -274,34 +312,36 @@ export default function Home() {
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
         onMouseLeave={handleHeroMouseLeave}
-        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-black cursor-none"
+        className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-gradient-to-b from-background/95 to-background/80 cursor-none"
       >
-        {/* Cursor-following spotlight glow */}
+        {/* Enhanced cursor-following spotlight with multiple layers and dynamic glow */}
         <div
           ref={spotlightRef}
-          className="pointer-events-none absolute z-[2] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-300"
-          style={{
-            width: '600px',
-            height: '600px',
-            left: '50%',
-            top: '50%',
-            background: 'radial-gradient(circle at center, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 30%, transparent 70%)',
-          }}
-        />
-        {/* Custom cursor dot */}
+          className="pointer-events-none absolute z-[2] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-500"
+        >
+          {/* Outer glow - large and soft */}
+          <div className="absolute inset-0 bg-gradient-radial from-primary/10 via-transparent to-transparent blur-3xl animate-pulse-6s" />
+          {/* Middle glow - medium intensity */}
+          <div className="absolute inset-0 bg-gradient-radial from-primary/15 via-transparent to-transparent blur-xl" />
+          {/* Inner glow - bright core */}
+          <div className="absolute inset-0 bg-gradient-radial from-primary/20 via-transparent to-transparent blur-l" />
+          {/* Dynamic sparkle effect */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,transparent_30%,rgba(255,255,255,0.1)_70%)] animate-sparkle-4s" />
+        </div>
+        {/* Enhanced custom cursor with multiple layers and subtle animations */}
         <div
           ref={cursorRef}
-          className="pointer-events-none absolute z-[3] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-200"
-          style={{
-            width: '12px',
-            height: '12px',
-            left: '50%',
-            top: '50%',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, #8A6D1E 0%, #8A6D1E80 60%, transparent 100%)',
-            boxShadow: '0 0 20px 4px rgba(138,109,30,0.5)',
-          }}
-        />
+          className="pointer-events-none absolute z-[3] -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-400"
+        >
+          {/* Outer pulse ring */}
+          <div className="absolute inset-0 border-2 border-primary/30 rounded-full opacity-0 animate-pulse-4" />
+          {/* Middle ring */}
+          <div className="absolute inset-0.5 border-1 border-primary/50 rounded-full opacity-0 animate-pulse-3" />
+          {/* Inner core with glow */}
+          <div className="absolute inset-1 bg-primary/80 rounded-full opacity-0 drop-shadow-[0_0_8px_rgba(138,109,30,0.6)]" />
+          {/* Tiny center dot */}
+          <div className="absolute inset-2 bg-white/80 rounded-full" />
+        </div>
         <div className="absolute inset-0 z-0">
           <SplineScene
             scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
@@ -311,41 +351,46 @@ export default function Home() {
         </div>
         <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 text-center">
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
           >
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Globe size={32} className="text-brass" />
-              <h1 className="font-display text-3xl md:text-5xl font-bold drop-shadow-lg">
-                Global Deal Finder
-              </h1>
+            <div className="flex items-center justify-center gap-4 mb-6">
+              <Globe size={36} className="text-primary drop-shadow-[0_0_15px_rgba(138,109,30,0.3)]" />
+              <div className="space-y-1">
+                <h1 className="font-display text-4xl md:text-5xl font-bold drop-shadow-[0_0_20px_rgba(138,109,30,0.4)]">
+                  <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    Global Deal Finder
+                  </span>
+                </h1>
+                <p className="text-paper/70 text-lg drop-shadow-md max-w-xl mx-auto">
+                  Best Price + Best Card + Best Timing, Worldwide
+                </p>
+              </div>
             </div>
-            <p className="text-paper/80 text-lg drop-shadow-md max-w-xl mx-auto">
-              Best Price + Best Card + Best Timing, Worldwide
-            </p>
           </motion.div>
         </div>
-        {/* Bottom gradient fade into search area */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-ink-navy to-transparent z-10" />
+        {/* Enhanced bottom gradient with subtle animation */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background/90 to-transparent z-10" />
       </div>
 
       <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-20 pb-8 md:pb-16">
 
-        {/* Redesigned Search Bar */}
+        {/* Premium Search Bar */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, type: 'spring', stiffness: 100 }}
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.3, type: 'spring', stiffness: 100, damping: 15 }}
           className="relative group"
         >
-          {/* Animated glow border */}
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-brass/40 via-teal/30 to-brass/40 opacity-60 group-hover:opacity-100 transition-opacity duration-500 blur-sm" />
-          <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-r from-brass/40 via-teal/30 to-brass/40 opacity-60 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Animated gradient border with glow */}
+          <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/40 opacity-80 group-hover:opacity-100 transition-opacity duration-800 blur-2xl" />
+          <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/40 opacity-60 group-hover:opacity-100 transition-opacity duration-800" />
 
-          <div className="relative bg-ink-navy/90 backdrop-blur-xl rounded-2xl p-5 md:p-6 border border-white/5">
-            <div className="flex flex-col md:flex-row gap-3">
+          <div className="relative bg-background/85 backdrop-blur-xl rounded-2xl p-6 md:p-8 border border-white/10">
+            <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative" ref={dropdownRef}>
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brass/60 z-10" />
+                <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/50 z-10" />
                 <input
                   ref={inputRef}
                   type="text"
@@ -358,22 +403,22 @@ export default function Home() {
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                   onKeyDown={handleKeyDown}
                   placeholder="What do you want to buy? e.g. Samsung Galaxy S25 Ultra"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-paper placeholder:text-paper/30 focus:outline-none focus:border-brass/50 focus:bg-white/8 transition-all duration-300"
+                  className="w-full bg-transparent border-none pl-12 pr-5 py-4 text-white placeholder:text-paper/30 focus:outline-none focus:border-primary/50 focus:bg-background/80 transition-all duration-300 text-base"
                 />
 
                 <AnimatePresence>
                   {showSuggestions && (suggestions.length > 0 || suggestLoading) && (
                     <motion.div
-                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 right-0 mt-2 bg-ink-navy/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                      className="absolute top-full left-0 right-0 mt-4 bg-background/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
                     >
                       {suggestLoading && (
-                        <div className="flex items-center gap-2 px-4 py-3 text-sm text-paper/50">
-                          <Loader2 size={14} className="animate-spin text-brass" />
-                          Finding suggestions...
+                        <div className="flex items-center gap-3 px-5 py-4 text-sm text-paper/40">
+                          <Loader2 size={16} className="animate-spin text-primary" />
+                          <span>Finding suggestions...</span>
                         </div>
                       )}
                       {suggestions.map((s, i) => (
@@ -384,15 +429,19 @@ export default function Home() {
                             setShowSuggestions(false)
                             doSearch(s.text)
                           }}
-                          className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 transition-all duration-200 ${
+                          className={`w-full text-left px-5 py-3 text-sm flex items-center gap-4 transition-all duration-300 ${
                             i === activeSuggestion
-                              ? 'bg-teal/15 text-teal'
-                              : 'hover:bg-white/5 text-paper/80'
+                              ? 'bg-secondary/15 border-l-2 border-secondary text-secondary shadow-lg'
+                              : 'hover:bg-background/50 border-l-2 border-transparent text-paper/80 hover:border-primary/30'
                           }`}
                         >
-                          <Search size={14} className="text-brass/40 shrink-0" />
-                          <span className="flex-1">{s.text}</span>
-                          <ChevronRight size={14} className="text-paper/20" />
+                          <div className="flex-shrink-0">
+                            <Search size={16} className="text-primary/40" />
+                          </div>
+                          <div className="flex-1">{s.text}</span>
+                          <div className="flex-shrink-0">
+                            <ChevronRight size={14} className="text-paper/20" />
+                          </div>
                         </button>
                       ))}
                     </motion.div>
@@ -401,32 +450,41 @@ export default function Home() {
               </div>
 
               <div className="relative">
-                <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brass/60 pointer-events-none" />
+                <MapPin size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-primary/50 pointer-events-none" />
                 <select
                   value={homeCountry}
                   onChange={(e) => setHomeCountry(e.target.value)}
-                  className="w-full md:w-auto bg-white/5 border border-white/10 rounded-xl pl-11 pr-8 py-3.5 text-paper appearance-none focus:outline-none focus:border-brass/50 focus:bg-white/8 transition-all duration-300 cursor-pointer"
+                  className="w-full md:w-auto bg-transparent border-none pl-12 pr-9 py-4 text-white appearance-none focus:outline-none focus:border-primary/50 focus:bg-background/80 transition-all duration-300 text-base cursor-pointer"
                 >
                   {COUNTRIES.map(c => (
-                    <option key={c.code} value={c.code} className="bg-ink-navy text-paper">{c.flag} {c.name}</option>
+                    <option key={c.code} value={c.code} className="bg-background text-white">{c.flag} {c.name}</option>
                   ))}
                 </select>
               </div>
+
               <motion.button
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.02, rotate: [0, 1, 0] }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => doSearch(query)}
                 disabled={loading || !query.trim()}
-                className="relative bg-gradient-to-r from-brass to-brass/80 text-ink-navy px-7 py-3.5 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-brass/20 hover:shadow-brass/40"
+                className="relative w-full md:w-auto bg-gradient-to-r from-primary to-secondary text-background font-semibold px-6 py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-400 shadow-xl shadow-primary/30 hover:shadow-primary/40 active:scale-[0.97]"
               >
-                {loading ? (
-                  <><Loader2 size={18} className="animate-spin" /> Searching...</>
-                ) : (
-                  <><Search size={18} /> Compare Prices</>
-                )}
+                <div className="flex items-center gap-3">
+                  {loading ? (
+                    <>
+                      <Loader2 size={20} className="animate-spin" />
+                      <span>Searching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search size={20} />
+                      <span>Compare Prices</span>
+                    </>
+                  )}
+                </div>
               </motion.button>
             </div>
-            <p className="text-xs text-paper/30 mt-3 text-center">
+            <p className="text-xs text-paper/30 mt-4 text-center">
               Searches across Amazon, Flipkart, Best Buy, and 100+ retailers in 7 countries
             </p>
           </div>
@@ -508,25 +566,32 @@ export default function Home() {
 
         {!results && !loading && !clarify && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
             className="text-center py-20"
           >
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-brass/10 blur-3xl rounded-full" />
-              <Globe size={56} className="relative text-brass/40" />
+            <div className="relative inline-block-start>
+              <div className="absolute inset-0 bg-primary/15 blur-3xl rounded-full" />
+              <div className="relative w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center">
+                <Globe size={24} className="text-primary/50" />
+              </div>
             </div>
-            <p className="text-lg text-paper/50">Enter a product above to compare prices worldwide</p>
-            <div className="flex flex-wrap justify-center gap-2 mt-4">
-              {['iPhone 17 Pro Max', 'Sony WH-1000XM5', 'Dyson V15'].map((term) => (
-                <button
+            <p className="text-lg text-paper/50 mb-6">
+              Enter a product above to compare prices worldwide
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {['iPhone 17 Pro Max', 'Sony WH-1000XM5', 'Dyson V15'].map((term, index) => (
+                <motion.button
                   key={term}
+                  initial={{ opacity: 0, y: 20 * index }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.1 }}
                   onClick={() => { setQuery(term); doSearch(term) }}
-                  className="px-4 py-1.5 rounded-full text-sm text-paper/40 border border-white/10 hover:border-brass/30 hover:text-paper/60 transition-all duration-200"
+                  className="px-5 py-2 rounded-xl text-sm font-medium transition-all duration-300 border border-white/10 hover:border-primary/30 hover:text-paper/60 hover:bg-background/50"
                 >
                   {term}
-                </button>
+                </motion.button>
               ))}
             </div>
           </motion.div>

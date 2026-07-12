@@ -2,61 +2,404 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #0B1220;
+  --foreground: #F6F3EA;
+  --primary: #8A6D1E; /* Brass */
+  --secondary: #00D4AA; /* Teal */
+  --accent: #FF6B6B; /* Coral */
+  --muted: rgba(246, 243, 234, 0.3);
+  --border: rgba(246, 243, 234, 0.1);
+}
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #0B1220;
-  color: #F6F3EA;
+  background-color: var(--background);
+  color: var(--foreground);
+  background-image:
+    radial-gradient(circle at 1% 1%, rgba(138, 109, 30, 0.05) 0%, transparent 25%),
+    radial-gradient(circle at 99% 99%, rgba(0, 212, 170, 0.05) 0%, transparent 25%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-.split-flap {
-  perspective: 1000px;
+html, body, #__next {
+  height: 100%;
 }
 
-.split-flap-digit {
-  transition: transform 0.3s ease-in-out;
-  transform-style: preserve-3d;
+* {
+  scroll-behavior: smooth;
 }
 
-.split-flap-digit.flipping {
-  animation: flip 0.3s ease-in-out;
+/* Premium typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
-@keyframes flip {
-  0% { transform: rotateX(0deg); }
-  50% { transform: rotateX(-90deg); }
-  100% { transform: rotateX(0deg); }
+h1 {
+  font-size: 3.5rem;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.stamp-animation {
-  animation: stamp 0.5s ease-out;
+h2 {
+  font-size: 2.5rem;
+  letter-spacing: -0.015em;
 }
 
-@keyframes stamp {
-  0% { transform: scale(2) rotate(-15deg); opacity: 0; }
-  50% { transform: scale(1.1) rotate(-5deg); opacity: 0.8; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+h3 {
+  font-size: 2rem;
+  letter-spacing: -0.01em;
 }
 
-.freshness-badge {
-  animation: pulse 2s infinite;
+p {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: var(--foreground);
+  opacity: 0.9;
+}
+
+/* Enhanced buttons */
+.btn-primary {
+  @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold px-8 py-3 rounded-xl
+         transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-xl
+         hover:shadow-primary/30 active:scale-[0.98] border border-white/20
+         backdrop-blur-sm bg-opacity-90 relative overflow-hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent to-primary/20
+         animate-[gradient-shift_3s_ease_infinite];
+}
+
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.btn-secondary {
+  @apply bg-background/60 backdrop-blur-sm border border-white/20 text-primary
+         font-semibold px-8 py-3 rounded-xl transition-all duration-300
+         hover:bg-background/80 hover:border-primary/50 hover:shadow-lg
+         active:scale-[0.98];
+}
+
+/* Premium feel */
+.card-premium {
+  @app lua
+  @apply bg-background/60 backdrop-blur-xl border border-white/10 rounded-2xl
+         px-6 py-8 transition-all duration-400 ease-in-out
+         hover:bg-background/80 hover:border-white/20 hover:shadow-xl
+         shadow-lg shadow-black/20 relative overflow-hidden;
+}
+
+.card-premium::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent
+         animate-[gradient-shift_3s_ease_infinite] pointer-events-none;
+}
+
+/* Elegant input styles */
+.input-premium {
+  @apply w-full bg-background/60 backdrop-blur-xl border border-white/10
+         rounded-xl px-6 py-4 text-white placeholder-gray-400
+         focus:outline-none focus:border-primary/50 focus:bg-background/80
+         transition-all duration-300 text-base;
+}
+
+/* Elegant select styles */
+.select-premium {
+  @apply w-full bg-background/60 backdrop-blur-xl border border-white/10
+         rounded-xl px-6 py-4 text-white placeholder-gray-400
+         focus:outline-none focus:border-primary/50 focus:bg-background/80
+         transition-all duration-300 text-base appearance-none cursor-pointer;
+}
+
+/* Elegant button styles */
+.button-premium {
+  @apply w-full bg-gradient-to-r from-primary to-secondary text-background
+         font-semibold px-6 py-3 rounded-xl transition-all duration-300
+         hover:scale-[1.02] hover:shadow-xl hover:shadow-primary/30
+         active:scale-[0.98] border border-white/20 backdrop-blur-sm;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+}
+
+/* Subtle animations */
+.fade-in-up {
+  @animate animate-fade-in-up;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Floating animation */
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Pulse animation */
+.pulse-slow {
+  animation: pulse 4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
 }
 
-.loader {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #8A6D1E;
+/* Glassmorphism */
+.glass {
+  @apply bg-background/40 backdrop-blur-xl border border-white/10
+         rounded-xl shadow-lg;
+}
+
+/* Custom cursor enhancements */
+.custom-cursor {
+  @apply pointer-events-none absolute -translate-x-1/2 -translate-y-1/2
+         transition-all duration-200 pointer-events-none z-[9999];
+}
+
+.cursor-dot {
+  @apply width-4 height-4 bg-primary rounded-full
+         opacity-0 transition-opacity duration-200;
+}
+
+.cursor-ring {
+  @apply width-12 height-12 border-2 border-primary/50 rounded-full
+         opacity-0 transition-opacity duration-200;
+}
+
+.cursor-ring-outer {
+  @apply width-20 height-20 border-1 border-primary/20 rounded-full
+         opacity-0 transition-opacity duration-200 animate-pulse-slow;
+}
+
+/* Spotlight enhancements */
+.spotlight-premium {
+  @apply pointer-events-none absolute -translate-x-1/2 -translate-y-1/2
+         opacity-0 transition-opacity duration-300 z-[2];
+}
+
+.spotlight-inner {
+  @apply w-[400px] h-[400px] bg-gradient-radial from-white/20 via-transparent to-transparent
+         blur-xl animate-[pulse_4s_ease_infinite];
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* Hero section enhancements */
+.hero-gradient {
+  @apply absolute inset-0 bg-gradient-to-b from-background/90 to-transparent
+         pointer-events-none z-[1];
+}
+
+.hero-content {
+  @apply relative z-10 flex flex-col items-center justify-center h-full px-6 text-center;
+}
+
+/* Results card enhancements */
+.result-card {
+  @apply bg-background/60 backdrop-blur-xl border border-white/10 rounded-2xl
+         p-6 transition-all duration-400 hover:bg-background/80
+         hover:border-white/20 hover:shadow-xl shadow-lg shadow-black/20;
+}
+
+.result-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Loading enhancements */
+.loader-premium {
+  @apply w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full
+         animate-spin duration-200;
+}
+
+/* Responsive enhancements */
+@media (min-width: 768px) {
+  h1 {
+    font-size: 4.5rem;
+  }
+
+  h2 {
+    font-size: 3.5rem;
+  }
+
+  .hero-content {
+    px-8;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 5rem;
+  }
+
+  h2 {
+    font-size: 4rem;
+  }
+}
+
+/* Custom animations for enhanced UI */
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 3s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+/* Gradient animations */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.animate-gradient-shift {
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Blast effect for buttons */
+@keyframes blast {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 0.4; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+.blast-effect {
+  position: absolute;
+  pointer-events: none;
+}
+
+.blast-effect::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: blast 0.8s ease-out;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+/* Pulse animations for cursor */
+@keyframe pulse-4 {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes pulse-3 {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50% { transform: scale(1.1); opacity: 0.6; }
+}
+
+.animate-pulse-4 {
+  animation: pulse-4 4s ease-in-out infinite;
+}
+
+.animate-pulse-3 {
+  animation: pulse-3 3s ease-in-out infinite;
+}
+
+/* Specific animations for hero elements */
+@keyframes pulse-6s {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-pulse-6s {
+  animation: pulse-6s 6s ease-in-out infinite;
+}
+
+@keyframes sparkle-4s {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 0.3; }
+}
+
+.animate-sparkle-4s {
+  animation: sparkle-4s 4s ease-in-out infinite;
+}
+
+/* Responsive enhancements */
+@media (min-width: 768px) {
+  h1 {
+    font-size: 4.5rem;
+  }
+
+  h2 {
+    font-size: 3.5rem;
+  }
+
+  .hero-content {
+    px-8;
+  }
+}
+
+@media (min-width: 1024px) {
+  h1 {
+    font-size: 5rem;
+  }
+
+  h2 {
+    font-size: 4rem;
+  }
 }
