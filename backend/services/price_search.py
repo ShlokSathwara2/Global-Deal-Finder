@@ -31,11 +31,7 @@ def _is_relevant(title: str, keywords: list[str]) -> bool:
     if not keywords:
         return True
     matched = sum(1 for kw in keywords if kw in title_lower)
-    ratio = matched / len(keywords)
-    if ratio < 0.75:
-        return False
-    last_keyword = keywords[-1]
-    if len(last_keyword) > 2 and last_keyword not in title_lower:
+    if matched < len(keywords):
         return False
     return True
 
