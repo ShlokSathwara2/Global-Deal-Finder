@@ -6,3 +6,5 @@ out/
 __pycache__/
 *.pyc
 .env
+# TypeScript build cache
+tsconfig.tsbuildinfo
