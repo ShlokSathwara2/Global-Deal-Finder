@@ -6,6 +6,7 @@ from pydantic import BaseModel, ValidationError
 from dotenv import load_dotenv
 from groq import Groq
 from supabase import create_client
+from serpapi import GoogleSearch
 from services.price_search import search_prices, store_prices
 from services.true_cost import calculate_true_cost, get_country_rules, CURRENCY_SYMBOLS
 from services.card_offers import search_card_offers, normalize_offer, store_offers
@@ -76,6 +77,89 @@ def parse_intent_with_groq(text: str) -> Intent:
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
+
+
+@app.get("/suggest")
+async def suggest(q: str = "", country: str = "IN"):
+    if not q or len(q) < 2:
+        return {"suggestions": []}
+
+    try:
+        params = {
+            "engine": "google_autocomplete",
+            "q": q,
+            "api_key": os.getenv("SERPAPI_KEY"),
+            "gl": country,
+            "hl": "en",
+        }
+        data = GoogleSearch(params).get_dict()
+        suggestions = [
+            {"text": s["value"], "relevance": s.get("relevance", 0)}
+            for s in data.get("suggestions", [])[:8]
+        ]
+    except Exception:
+        suggestions = []
+
+    return {"query": q, "country": country, "suggestions": suggestions}
+
+
+CLARIFY_SYSTEM_PROMPT = """You are a smart shopping assistant. The user wants to search for a product but the query is ambiguous or vague.
+
+Your job: generate 2-4 short clarifying questions to narrow down exactly what they want.
+
+Return ONLY valid JSON:
+{
+  "needs_clarification": true,
+  "questions": [
+    {"question": "What exactly are you looking for?", "options": ["iPhone 17", "iPhone 17 Pro", "iPhone 17 Pro Max"]},
+    {"question": "What's your budget range?", "options": ["Under $500", "$500-$1000", "$1000+"]}
+  ]
+}
+
+If the query is already specific enough (has brand + model), return:
+{
+  "needs_clarification": false,
+  "clarified_product": "exact product name",
+  "questions": []
+}
+
+Rules:
+- Questions should be short and actionable
+- Options should be specific, not generic
+- If brand is missing but product type is clear, ask about brand
+- If model is vague, ask about specific model
+- If it's clearly a specific product, don't ask anything
+- Examples of specific: "iPhone 17 Pro Max 256GB", "Samsung Galaxy S25 Ultra", "Sony WH-1000XM5"
+- Examples of vague: "headphones", "phone", "laptop", "earbuds", "watch"
+"""
+
+
+@app.post("/clarify")
+async def clarify(request: Request):
+    body = await request.json()
+    text = body.get("text", "")
+
+    if not text:
+        raise HTTPException(status_code=400, detail="text is required")
+
+    try:
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": CLARIFY_SYSTEM_PROMPT},
+                {"role": "user", "content": text},
+            ],
+            temperature=0,
+            max_tokens=500,
+        )
+        raw = response.choices[0].message.content.strip()
+        if raw.startswith("```"):
+            raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
+        result = json.loads(raw)
+    except Exception:
+        result = {"needs_clarification": False, "clarified_product": text, "questions": []}
+
+    return {"original_query": text, **result}
 
 
 @app.post("/parse-intent")
