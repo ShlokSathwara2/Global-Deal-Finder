@@ -1,5 +1,6 @@
 import os
 import json
+from statistics import median
 from serpapi import GoogleSearch
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
@@ -36,18 +37,26 @@ def _is_relevant(title: str, keywords: list[str]) -> bool:
     return True
 
 
+def _filter_by_price_floor(results: list[dict]) -> list[dict]:
+    prices = [r["price"] for r in results if r.get("price", 0) > 0]
+    if len(prices) < 3:
+        return results
+    med = median(prices)
+    floor = med * 0.15
+    return [r for r in results if r.get("price", 0) >= floor]
+
+
 def search_prices(product: str, country: str) -> list[dict]:
+    keywords = _extract_keywords(product)
     cache_key = f"prices:{product}:{country}"
 
     if redis:
         try:
             cached = redis.get(cache_key)
             if cached:
-                if isinstance(cached, str):
-                    raw = json.loads(cached)
-                else:
-                    raw = cached
-                return [r for r in raw if _is_relevant(r.get("title", ""), keywords) and r.get("price", 0) >= 100]
+                raw = json.loads(cached) if isinstance(cached, str) else cached
+                filtered = [r for r in raw if _is_relevant(r.get("title", ""), keywords) and r.get("price", 0) > 0]
+                return _filter_by_price_floor(filtered)
         except Exception:
             pass
 
@@ -63,8 +72,6 @@ def search_prices(product: str, country: str) -> list[dict]:
     search = GoogleSearch(params)
     data = search.get_dict()
 
-    keywords = _extract_keywords(product)
-
     results = []
     for item in data.get("shopping_results", []):
         title = item.get("title", "")
@@ -72,8 +79,6 @@ def search_prices(product: str, country: str) -> list[dict]:
         if price <= 0:
             continue
         if not _is_relevant(title, keywords):
-            continue
-        if price < 100:
             continue
         results.append({
             "product": product,
@@ -88,7 +93,7 @@ def search_prices(product: str, country: str) -> list[dict]:
             "thumbnail": item.get("thumbnail"),
         })
 
-    filtered = [r for r in results if r.get("price", 0) >= 100]
+    filtered = _filter_by_price_floor(results)
 
     if redis:
         try:
