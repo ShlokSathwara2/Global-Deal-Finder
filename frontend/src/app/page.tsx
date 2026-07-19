@@ -10,6 +10,7 @@ import WelcomeScreen from '@/components/WelcomeScreen'
 import ShimmerLoader from '@/components/ShimmerLoader'
 import MagneticButton from '@/components/MagneticButton'
 import RippleButton from '@/components/RippleButton'
+import SearchTimer from '@/components/SearchTimer'
 
 const COUNTRIES = [
   { code: 'IN', name: 'India', flag: '\u{1F1EE}\u{1F1F3}' },
@@ -633,14 +634,14 @@ export default function Home() {
             )}
           </AnimatePresence>
 
-          {/* Loading shimmer */}
+          {/* Loading timer */}
           {loading && !results && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <ShimmerLoader type="hero" />
+              <SearchTimer estimatedSeconds={10} query={query} />
             </motion.div>
           )}
 
