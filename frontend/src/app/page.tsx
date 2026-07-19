@@ -5,6 +5,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { Search, Globe, Loader2, MapPin, Sparkles, ChevronRight, X, ArrowRight, Zap, Shield, BarChart3 } from 'lucide-react'
 import ResultsView from '@/components/ResultsView'
 import { SplineScene } from '@/components/ui/splite'
+import { FloatingPaths } from '@/components/ui/background-paths'
 import WelcomeScreen from '@/components/WelcomeScreen'
 import ShimmerLoader from '@/components/ShimmerLoader'
 import MagneticButton from '@/components/MagneticButton'
@@ -281,6 +282,12 @@ export default function Home() {
                 }}
               />
             ))}
+
+            {/* Floating paths animation */}
+            <div className="absolute inset-0 opacity-30">
+              <FloatingPaths position={1} />
+              <FloatingPaths position={-1} />
+            </div>
           </div>
 
           {/* Spline 3D background */}
