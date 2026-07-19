@@ -36,6 +36,7 @@ export default function SearchTimer({ estimatedSeconds = 8, query = '' }: Search
   }, [])
 
   const remaining = Math.max(0, estimatedSeconds - elapsed)
+  const isOvertime = elapsed >= estimatedSeconds
   const progress = Math.min(1, elapsed / estimatedSeconds)
   const minutes = Math.floor(elapsed / 60)
   const seconds = elapsed % 60
@@ -94,7 +95,11 @@ export default function SearchTimer({ estimatedSeconds = 8, query = '' }: Search
             <Loader2 size={20} className="text-brass" />
           </motion.div>
           <span className="text-lg font-mono font-bold text-paper/80 mt-1">
-            {remaining}s
+            {isOvertime ? (
+              <span className="text-brass animate-pulse">Waking up...</span>
+            ) : (
+              `${remaining}s`
+            )}
           </span>
         </div>
       </div>

@@ -128,11 +128,15 @@ export default function Home() {
     setClarify(null)
     setShowSuggestions(false)
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 60000)
       const clarifyRes = await fetch('https://global-deal-finder.onrender.com/clarify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: searchQuery }),
+        signal: controller.signal,
       })
+      clearTimeout(timeout)
       if (clarifyRes.ok) {
         const clarifyData = await clarifyRes.json()
         if (clarifyData.needs_clarification && clarifyData.questions?.length > 0) {
@@ -146,7 +150,8 @@ export default function Home() {
       } else {
         await runCompare(searchQuery)
       }
-    } catch {
+    } catch (err: unknown) {
+      console.error('Search error:', err)
       await runCompare(searchQuery)
     }
   }
@@ -155,16 +160,30 @@ export default function Home() {
     setLoading(true)
     setError('')
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 90000)
       const res = await fetch('https://global-deal-finder.onrender.com/compare', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ product, home_country: homeCountry }),
+        signal: controller.signal,
       })
-      if (!res.ok) throw new Error('Failed to fetch comparison')
+      clearTimeout(timeout)
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ detail: 'Server error' }))
+        throw new Error(errBody.detail || `Request failed (${res.status})`)
+      }
       const data = await res.json()
       setResults(data)
-    } catch {
-      setError('Something went wrong. Please try again.')
+    } catch (err: unknown) {
+      console.error('Compare error:', err)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('Server is waking up, please try again in a moment.')
+      } else if (err instanceof TypeError && err.message.includes('fetch')) {
+        setError('Network error. Check your connection and try again.')
+      } else {
+        setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -641,7 +660,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <SearchTimer estimatedSeconds={10} query={query} />
+              <SearchTimer estimatedSeconds={15} query={query} />
             </motion.div>
           )}
 
