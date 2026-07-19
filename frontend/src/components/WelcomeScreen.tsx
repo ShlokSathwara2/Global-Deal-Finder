@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, TrendingDown, CreditCard, Clock, Globe, Sparkles } from 'lucide-react'
 import GlobeCinematic from './GlobeCinematic'
+import { FloatingPaths } from '@/components/ui/background-paths'
 
 interface WelcomeScreenProps {
   onEnter: () => void
@@ -65,6 +66,12 @@ export default function WelcomeScreen({ onEnter }: WelcomeScreenProps) {
               backgroundImage: 'linear-gradient(rgba(138,109,30,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(138,109,30,0.5) 1px, transparent 1px)',
               backgroundSize: '80px 80px',
             }} />
+          </div>
+
+          {/* Floating paths animation */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none">
+            <FloatingPaths position={1} />
+            <FloatingPaths position={-1} />
           </div>
 
           {/* Main content - two column layout */}
