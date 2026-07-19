@@ -63,6 +63,7 @@ interface CountryCardProps {
   isBestEmiCountry: boolean
   homeCountry: string
   product: string
+  isHighlighted?: boolean
 }
 
 const FLAG_EMOJIS: Record<string, string> = {
@@ -76,7 +77,7 @@ const COUNTRY_NAMES: Record<string, string> = {
 export default function CountryCard({
   country, currency, symbol, homeCurrency, homeSymbol, totalSellers, sellers, bestPrice, bestPriceHome, bestSeller, bestUrl,
   bestEmiPrice, bestEmiPriceHome, bestEmiMonthly, bestEmiMonthlyHome, bestEmiSeller, bestEmiUrl,
-  countryBest, isBestCountry, isBestEmiCountry, homeCountry, product,
+  countryBest, isBestCountry, isBestEmiCountry, homeCountry, product, isHighlighted = false,
 }: CountryCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [openSeller, setOpenSeller] = useState<number | null>(null)
@@ -127,7 +128,15 @@ export default function CountryCard({
   return (
     <motion.div
       className={`relative rounded-xl border ${getBorderStyle()} p-4 md:p-6 transition-all duration-300`}
-      style={{ background: getBackgroundStyle() }}
+      style={{
+        background: getBackgroundStyle(),
+        ...(isHighlighted ? {
+          borderColor: 'rgba(138,109,30,0.6)',
+          boxShadow: '0 0 30px rgba(138,109,30,0.15), 0 0 60px rgba(138,109,30,0.05)',
+        } : {}),
+      }}
+      animate={isHighlighted ? { scale: [1, 1.01, 1] } : {}}
+      transition={{ duration: 0.5 }}
       whileHover={{ borderColor: isBestCountry ? 'rgba(47,111,98,0.6)' : isBestEmiCountry ? 'rgba(138,109,30,0.6)' : 'rgba(255,255,255,0.12)' }}
     >
       {isBestCountry && (

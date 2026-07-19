@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 interface WorldMapProps {
   bestCountry?: string
   countries?: string[]
+  onCountryClick?: (country: string) => void
 }
 
 const COUNTRY_POSITIONS: Record<string, { x: number; y: number; label: string; flag: string }> = {
@@ -17,7 +18,7 @@ const COUNTRY_POSITIONS: Record<string, { x: number; y: number; label: string; f
   CA: { x: 22, y: 25, label: 'Canada', flag: '\u{1F1E8}\u{1F1E6}' },
 }
 
-export default function WorldMap({ bestCountry = '', countries = [] }: WorldMapProps) {
+export default function WorldMap({ bestCountry = '', countries = [], onCountryClick }: WorldMapProps) {
   const activeCountries = countries.length > 0 ? countries : Object.keys(COUNTRY_POSITIONS)
 
   return (
@@ -121,9 +122,11 @@ export default function WorldMap({ bestCountry = '', countries = [] }: WorldMapP
 
             {/* Dot */}
             <motion.div
-              className="relative z-10 flex items-center justify-center"
+              className="relative z-10 flex items-center justify-center cursor-pointer"
               whileHover={{ scale: 1.3 }}
+              whileTap={{ scale: 0.95 }}
               transition={{ type: 'spring', stiffness: 400 }}
+              onClick={() => onCountryClick?.(code)}
             >
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-sm cursor-pointer"
@@ -144,13 +147,14 @@ export default function WorldMap({ bestCountry = '', countries = [] }: WorldMapP
 
               {/* Label */}
               <motion.div
-                className="absolute -bottom-7 whitespace-nowrap text-[10px] font-mono"
+                className="absolute -bottom-7 whitespace-nowrap text-[10px] font-mono cursor-pointer"
                 style={{
                   color: isBest ? 'rgba(47,111,98,0.9)' : 'rgba(246,243,234,0.4)',
                 }}
                 initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 + i * 0.1 }}
+                onClick={() => onCountryClick?.(code)}
               >
                 {pos.label}
                 {isBest && (

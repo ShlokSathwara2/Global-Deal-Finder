@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import CountryCard from './CountryCard'
 import SplitFlapTicker from './SplitFlapTicker'
@@ -83,6 +83,8 @@ const itemVariants = {
 
 export default function ResultsView({ data }: ResultsViewProps) {
   const [showConfetti, setShowConfetti] = useState(false)
+  const [highlightedCountry, setHighlightedCountry] = useState<string | null>(null)
+  const countryRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const {
     product, home_country, home_currency, home_symbol, scenarios, best_country, best_price, best_price_home, best_seller, best_url,
     best_emi_country, best_emi_price, best_emi_price_home, best_emi_monthly, best_emi_monthly_home, best_emi_seller, best_emi_url, timing,
@@ -93,6 +95,15 @@ export default function ResultsView({ data }: ResultsViewProps) {
   useEffect(() => {
     const timer = setTimeout(() => setShowConfetti(true), 800)
     return () => clearTimeout(timer)
+  }, [])
+
+  const handleCountryClick = useCallback((country: string) => {
+    setHighlightedCountry(country)
+    const el = countryRefs.current[country]
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    setTimeout(() => setHighlightedCountry(null), 2000)
   }, [])
 
   return (
@@ -129,6 +140,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
         <WorldMap
           bestCountry={best_country}
           countries={scenarios.map(s => s.country)}
+          onCountryClick={handleCountryClick}
         />
       </motion.div>
 
@@ -257,6 +269,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
           {scenarios.map((scenario, i) => (
             <motion.div
               key={scenario.country}
+              ref={(el) => { countryRefs.current[scenario.country] = el }}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 + i * 0.08 }}
@@ -284,6 +297,7 @@ export default function ResultsView({ data }: ResultsViewProps) {
                 isBestEmiCountry={scenario.country === best_emi_country}
                 homeCountry={home_country}
                 product={product}
+                isHighlighted={scenario.country === highlightedCountry}
               />
             </motion.div>
           ))}

@@ -92,9 +92,9 @@ export default function SearchTimer({ estimatedSeconds = 8, query = '' }: Search
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           >
-            <Loader2 size={20} className="text-brass" />
+            <Loader2 size={18} className="text-brass" />
           </motion.div>
-          <span className="text-lg font-mono font-bold text-paper/80 mt-1">
+          <span className="text-base font-mono font-bold text-paper/80 mt-1 whitespace-nowrap">
             {isOvertime ? (
               <span className="text-brass animate-pulse">Waking up...</span>
             ) : (
